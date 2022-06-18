@@ -45,7 +45,5 @@ provider:
           Action:
             - dynamodb:PutItem
             - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:UpdateItem
           Resource: ${env:AWS_ARN_DYNAMODB}
 useDotenv: true
