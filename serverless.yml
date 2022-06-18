@@ -4,18 +4,18 @@ plugins:
   - serverless-offline
   - serverless-python-requirements
 custom:
-  dotenv:
-    exclude:
-      - AWS_ACCESS_KEY_ID
-      - AWS_REGION
-      - AWS_SECRET_ACCESS_KEY
   pythonRequirements:
-    dockerizePip: false
+    dockerizePip: true
     layer: true
+    zip: true
   serverless-offline:
     httpsProtocol: false
 functions:
   app:
+    environment:
+      APP_NAME: ${env:APP_NAME}
+      APP_STAGE: ${env:APP_STAGE}
+      APP_TIMEZONE: ${env:APP_TIMEZONE}
     events:
       - httpApi: '*'
     handler: app.main.handler
