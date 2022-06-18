@@ -1,4 +1,4 @@
-service: personal-backend-service
+service: cache-service
 frameworkVersion: '3'
 plugins:
   - serverless-offline
