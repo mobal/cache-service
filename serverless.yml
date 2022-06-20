@@ -33,6 +33,8 @@ package:
     - 'Pipfile'
     - 'Pipfile.lock'
     - 'serverless.yml'
+    - '.requirements.zip'
+    - '.pytest_cache'
 provider:
   name: aws
   runtime: python3.9
