@@ -37,6 +37,7 @@ class TestCacheService:
         assert err.typename == 'HTTPException'
         assert (str(random_uuid) in err.value.detail) is True
 
+    @mock_dynamodb
     async def test_successfully_get_key_value(self, setup_dynamodb):
         result = await self.cache_service.get_key_value_by_key(self.key_value['key'])
         assert self.key_value['key'] == result['key']
