@@ -13,7 +13,7 @@ from app.config import Configuration
 class KeyValue(CamelModel):
     key: str
     value: str
-    expired_at: str
+    ttl: int
 
 
 class CacheService:
@@ -24,17 +24,17 @@ class CacheService:
         db = session.resource('dynamodb')
         self.table = db.Table(f'{config.app_stage}-cache')
 
-    async def get_key_value_by_key(self, key: str) -> KeyValue:
+    async def get_key_value_by_key(self, key: str) -> dict:
         self.logger.info(f'Get value for key={key}')
         response = self.table.query(
             KeyConditionExpression=Key('key').eq(key),
-            FilterExpression=Attr('expired_at').gte(pendulum.now().to_iso8601_string())
+            FilterExpression=Attr('expired_at').lte(pendulum.now().to_iso8601_string())
         )
         if response['Count'] == 0:
             error_message = f'The requested value was not found for key={key}'
             self.logger.info(error_message)
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error_message)
-        return KeyValue.parse_obj(response['Items'][0])
+        return response['Items'][0]
 
     async def put_key_value(self, data: dict) -> None:
         expired_at = pendulum.datetime(9999, 12, 31, 23, 59, 59)
