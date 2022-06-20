@@ -28,7 +28,7 @@ class CacheService:
         self.logger.info(f'Get value for key={key}')
         response = self.table.query(
             KeyConditionExpression=Key('key').eq(key),
-            FilterExpression=Attr('expired_at').lte(pendulum.now().to_iso8601_string())
+            FilterExpression=Attr('expired_at').gte(pendulum.now().to_iso8601_string())
         )
         if response['Count'] == 0:
             error_message = f'The requested value was not found for key={key}'
