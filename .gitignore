@@ -64,7 +64,7 @@ lib-cov
 coverage
 *.lcov
 
-# nyc test coverage
+# nyc tests coverage
 .nyc_output
 
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
@@ -304,7 +304,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit tests / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -429,3 +429,5 @@ cython_debug/
 .serverless
 
 # End of https://www.toptal.com/developers/gitignore/api/node,macos,python,dotenv,serverless,pycharm+all
+
+.requirements.zip
