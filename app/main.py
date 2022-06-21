@@ -5,10 +5,12 @@ from typing import List
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi_camelcase import CamelModel
 from mangum import Mangum
 from pydantic import ValidationError
 from starlette import status
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
@@ -52,6 +54,7 @@ class ValidationErrorResponse(ErrorResponse):
 
 
 @app.exception_handler(HTTPException)
+@app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, error: HTTPException) -> JSONResponse:
     error_id = uuid.uuid4()
     logger.error(f'{error.detail} with status_code={error.status_code}, error_id={error_id} and request={request}')
@@ -61,6 +64,7 @@ async def http_exception_handler(request: Request, error: HTTPException) -> JSON
     )
 
 
+@app.exception_handler(RequestValidationError)
 @app.exception_handler(ValidationError)
 async def validation_error_handler(request: Request, error: ValidationError) -> JSONResponse:
     error_id = uuid.uuid4()
