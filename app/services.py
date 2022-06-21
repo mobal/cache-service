@@ -20,8 +20,7 @@ class CacheService:
     def __init__(self):
         self.logger = logging.getLogger()
         config = Configuration()
-        session = boto3.Session()
-        db = session.resource('dynamodb')
+        db = boto3.resource('dynamodb')
         self.table = db.Table(f'{config.app_stage}-cache')
 
     async def get_key_value_by_key(self, key: str) -> dict:
