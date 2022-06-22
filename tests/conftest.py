@@ -5,6 +5,12 @@ from starlette.testclient import TestClient
 
 from app.config import Configuration
 from app.main import app
+from app.services import CacheService
+
+
+@pytest.fixture
+def cache_service() -> CacheService:
+    return CacheService()
 
 
 @pytest.fixture

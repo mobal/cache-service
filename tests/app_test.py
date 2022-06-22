@@ -2,8 +2,6 @@ import pytest
 from fastapi import HTTPException
 from starlette import status
 
-from app.services import CacheService as service
-
 
 @pytest.fixture
 def key_value_dict() -> dict:
@@ -12,7 +10,7 @@ def key_value_dict() -> dict:
 
 
 @pytest.mark.asyncio
-async def test_successfully_get_cache_value(mocker, key_value_dict, test_client) -> None:
+async def test_successfully_get_cache_value(mocker, key_value_dict, test_client, cache_service) -> None:
     mocker.patch('app.services.CacheService.get_key_value_by_key', return_value=key_value_dict)
     response = test_client.get(f'/api/cache/{key_value_dict["key"]}')
     assert status.HTTP_200_OK == response.status_code
@@ -20,11 +18,11 @@ async def test_successfully_get_cache_value(mocker, key_value_dict, test_client)
     assert key_value_dict['key'] == result['key']
     assert key_value_dict['value'] == result['value']
     assert key_value_dict['expired_at'] == result['expired_at']
-    service.get_key_value_by_key.assert_called_once_with(key_value_dict['key'])
+    cache_service.get_key_value_by_key.assert_called_once_with(key_value_dict['key'])
 
 
 @pytest.mark.asyncio
-async def test_fail_to_get_cache_value(mocker, key_value_dict, test_client) -> None:
+async def test_fail_to_get_cache_value(mocker, key_value_dict, test_client, cache_service) -> None:
     mocker.patch('app.services.CacheService.get_key_value_by_key', side_effect=HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail='err'))
     response = test_client.get(f'/api/cache/{key_value_dict["key"]}')
@@ -32,16 +30,16 @@ async def test_fail_to_get_cache_value(mocker, key_value_dict, test_client) -> N
     result = response.json()
     assert status.HTTP_404_NOT_FOUND == result['status']
     assert 'err' == result['message']
-    service.get_key_value_by_key.assert_called_once_with(key_value_dict['key'])
+    cache_service.get_key_value_by_key.assert_called_once_with(key_value_dict['key'])
 
 
 @pytest.mark.asyncio
-async def test_successfully_put_value(mocker, key_value_dict, test_client) -> None:
+async def test_successfully_put_value(mocker, key_value_dict, test_client, cache_service) -> None:
     mocker.patch('app.services.CacheService.put_key_value', return_value=None)
     request_body = {'key': '591eecfb-887a-4dc3-a401-c15af829f1b2', 'value': 'asd', 'ttl': 0}
     response = test_client.post('/api/cache', json=request_body)
     assert status.HTTP_201_CREATED == response.status_code
-    service.put_key_value.assert_called_once_with(request_body)
+    cache_service.put_key_value.assert_called_once_with(request_body)
 
 
 @pytest.mark.asyncio
