@@ -44,5 +44,17 @@ async def test_successfully_put_value(mocker, key_value_dict, test_client, cache
 
 @pytest.mark.asyncio
 async def test_fail_to_put_value_because_body_is_empty(key_value_dict, test_client) -> None:
-    response = test_client.post('/api/cache', json={})
+    response = test_client.post('/api/cache', json='')
+    assert status.HTTP_400_BAD_REQUEST == response.status_code
+
+
+@pytest.mark.asyncio
+async def test_fail_to_put_value_because_body_is_none(key_value_dict, test_client) -> None:
+    response = test_client.post('/api/cache', json=None)
+    assert status.HTTP_400_BAD_REQUEST == response.status_code
+
+
+@pytest.mark.asyncio
+async def test_fail_to_put_value_because_body_is_invalid(key_value_dict, test_client) -> None:
+    response = test_client.post('/api/cache', json='{"key": "","value": "","ttl": 0}')
     assert status.HTTP_400_BAD_REQUEST == response.status_code
