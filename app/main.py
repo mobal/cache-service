@@ -12,11 +12,11 @@ from pydantic import ValidationError
 from starlette import status
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
-from starlette.responses import JSONResponse, Response
+from starlette.responses import JSONResponse
 
 from app.config import Configuration
 from app.schemas import CreateKeyValue
-from app.services import CacheService
+from app.services import CacheService, KeyValue
 
 logger = logging.getLogger()
 config = Configuration()
@@ -26,18 +26,16 @@ cache_service = CacheService()
 app = FastAPI(debug=config.app_stage == 'dev')
 
 
-@app.get('/api/cache/{key}')
-async def get(key: str, request: Request) -> JSONResponse:
+@app.get('/api/cache/{key}', status_code=status.HTTP_200_OK)
+async def get(key: str, request: Request) -> KeyValue:
     logger.info(f'request={request}')
-    return JSONResponse(content=jsonable_encoder(await cache_service.get_key_value_by_key(key)),
-                        status_code=status.HTTP_200_OK)
+    return await cache_service.get_key_value_by_key(key)
 
 
-@app.post('/api/cache')
-async def put(data: CreateKeyValue, request: Request) -> Response:
+@app.post('/api/cache', status_code=status.HTTP_201_CREATED)
+async def put(data: CreateKeyValue, request: Request):
     logger.info(f'request={request}')
     await cache_service.put_key_value(data.dict())
-    return Response(status_code=status.HTTP_201_CREATED)
 
 
 handler = Mangum(app)

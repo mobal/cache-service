@@ -5,23 +5,11 @@ from starlette.testclient import TestClient
 
 from app.config import Configuration
 from app.main import app
-from app.services import CacheService
-
-
-@pytest.fixture
-def cache_service() -> CacheService:
-    return CacheService()
 
 
 @pytest.fixture
 def config():
     return Configuration()
-
-
-@pytest.fixture
-def data_dict() -> dict:
-    return {'key': 'c999ac5b-59cd-4d2e-9fb2-ee37652976c7', 'value': 'asd',
-            'ttl': 3600}
 
 
 @pytest.fixture
