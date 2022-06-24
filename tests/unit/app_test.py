@@ -2,6 +2,20 @@ import pytest
 from fastapi import HTTPException
 from starlette import status
 
+from app.services import CacheService
+
+BASE_URL = '/api/cache'
+
+
+@pytest.fixture
+def body() -> dict:
+    return {'key': '591eecfb-887a-4dc3-a401-c15af829f1b2', 'value': 'asd', 'ttl': 0}
+
+
+@pytest.fixture
+def cache_service() -> CacheService:
+    return CacheService()
+
 
 @pytest.fixture
 def key_value_dict() -> dict:
@@ -12,7 +26,7 @@ def key_value_dict() -> dict:
 @pytest.mark.asyncio
 async def test_successfully_get_cache_value(mocker, key_value_dict, test_client, cache_service) -> None:
     mocker.patch('app.services.CacheService.get_key_value_by_key', return_value=key_value_dict)
-    response = test_client.get(f'/api/cache/{key_value_dict["key"]}')
+    response = test_client.get(f'{BASE_URL}/{key_value_dict["key"]}')
     assert status.HTTP_200_OK == response.status_code
     result = response.json()
     assert key_value_dict['key'] == result['key']
@@ -25,7 +39,7 @@ async def test_successfully_get_cache_value(mocker, key_value_dict, test_client,
 async def test_fail_to_get_cache_value(mocker, key_value_dict, test_client, cache_service) -> None:
     mocker.patch('app.services.CacheService.get_key_value_by_key', side_effect=HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail='err'))
-    response = test_client.get(f'/api/cache/{key_value_dict["key"]}')
+    response = test_client.get(f'{BASE_URL}/{key_value_dict["key"]}')
     assert status.HTTP_404_NOT_FOUND == response.status_code
     result = response.json()
     assert status.HTTP_404_NOT_FOUND == result['status']
@@ -34,27 +48,27 @@ async def test_fail_to_get_cache_value(mocker, key_value_dict, test_client, cach
 
 
 @pytest.mark.asyncio
-async def test_successfully_put_value(mocker, key_value_dict, test_client, cache_service) -> None:
+async def test_successfully_put_value(mocker, cache_service, body, key_value_dict, test_client) -> None:
     mocker.patch('app.services.CacheService.put_key_value', return_value=None)
-    request_body = {'key': '591eecfb-887a-4dc3-a401-c15af829f1b2', 'value': 'asd', 'ttl': 0}
-    response = test_client.post('/api/cache', json=request_body)
+    response = test_client.post(BASE_URL, json=body)
     assert status.HTTP_201_CREATED == response.status_code
-    cache_service.put_key_value.assert_called_once_with(request_body)
+    cache_service.put_key_value.assert_called_once_with(body)
 
 
 @pytest.mark.asyncio
 async def test_fail_to_put_value_because_body_is_empty(key_value_dict, test_client) -> None:
-    response = test_client.post('/api/cache', json='')
+    response = test_client.post(BASE_URL, json='')
     assert status.HTTP_400_BAD_REQUEST == response.status_code
 
 
 @pytest.mark.asyncio
 async def test_fail_to_put_value_because_body_is_none(key_value_dict, test_client) -> None:
-    response = test_client.post('/api/cache', json=None)
+    response = test_client.post(BASE_URL, json=None)
     assert status.HTTP_400_BAD_REQUEST == response.status_code
 
 
 @pytest.mark.asyncio
 async def test_fail_to_put_value_because_body_is_invalid(key_value_dict, test_client) -> None:
-    response = test_client.post('/api/cache', json='{"key": "","value": "","ttl": 0}')
+    invalid_body = {'key': '', 'value': '', 'ttl': 'ttl'}
+    response = test_client.post(BASE_URL, json=invalid_body)
     assert status.HTTP_400_BAD_REQUEST == response.status_code
