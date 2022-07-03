@@ -1,6 +1,5 @@
-
-# Created by https://www.toptal.com/developers/gitignore/api/node,macos,python,dotenv,serverless,pycharm+all
-# Edit at https://www.toptal.com/developers/gitignore?templates=node,macos,python,dotenv,serverless,pycharm+all
+# Created by https://www.toptal.com/developers/gitignore/api/node,macos,python,dotenv,serverless,pycharm+all,sonarqube
+# Edit at https://www.toptal.com/developers/gitignore?templates=node,macos,python,dotenv,serverless,pycharm+all,sonarqube
 
 ### dotenv ###
 .env
@@ -64,7 +63,7 @@ lib-cov
 coverage
 *.lcov
 
-# nyc tests coverage
+# nyc test coverage
 .nyc_output
 
 # Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
@@ -304,7 +303,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit tests / coverage reports
+# Unit test / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -428,6 +427,17 @@ cython_debug/
 # Ignore build directory
 .serverless
 
-# End of https://www.toptal.com/developers/gitignore/api/node,macos,python,dotenv,serverless,pycharm+all
+### SonarQube ###
+# SonarQube ignore files.
+#
+# https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner
+# Sonar Scanner working directories
+.sonar/
+.sonarqube/
+.scannerwork/
 
-.requirements.zip
+# http://www.sonarlint.org/commandline/
+# SonarLint working directories, configuration files (including credentials)
+.sonarlint/
+
+# End of https://www.toptal.com/developers/gitignore/api/node,macos,python,dotenv,serverless,pycharm+all,sonarqube
