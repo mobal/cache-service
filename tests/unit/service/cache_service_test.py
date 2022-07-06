@@ -37,13 +37,7 @@ class TestCacheService:
             Item={
                 'key': data['key'],
                 'value': data['value'],
-                'expired_at': pendulum.datetime(
-                    2100,
-                    12,
-                    31,
-                    23,
-                    59,
-                    59).to_iso8601_string()})
+                'expired_at': pendulum.now().add(hours=1).to_iso8601_string()})
 
     @pytest.fixture
     def table(self, config, dynamodb_client):
