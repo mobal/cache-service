@@ -26,8 +26,8 @@ class CacheService:
         self.logger.info(f'Get value for key={key}')
         response = self.table.query(
             KeyConditionExpression=Key('key').eq(key),
-            FilterExpression=Attr('expired_at').gte(pendulum.now().to_iso8601_string())
-        )
+            FilterExpression=Attr('expired_at').gte(
+                pendulum.now().to_iso8601_string()))
         if response['Count'] == 0:
             error_message = f'The requested value was not found for key={key}'
             self.logger.info(error_message)
@@ -38,6 +38,10 @@ class CacheService:
         expired_at = pendulum.datetime(9999, 12, 31, 23, 59, 59)
         if data['ttl'] != 0:
             expired_at = pendulum.now().add(seconds=data['ttl'])
-        self.table.put_item(Item={'key': data['key'], 'value': data['value'],
-                                  'expired_at': expired_at.to_iso8601_string()})
-        self.logger.info(f'Value for key successfully stored until expired_at={expired_at}, data={data}')
+        self.table.put_item(
+            Item={
+                'key': data['key'],
+                'value': data['value'],
+                'expired_at': expired_at.to_iso8601_string()})
+        self.logger.info(
+            f'Value for key successfully stored until expired_at={expired_at}, data={data}')
