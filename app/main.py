@@ -55,11 +55,15 @@ class ValidationErrorResponse(ErrorResponse):
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, error: HTTPException) -> JSONResponse:
     error_id = uuid.uuid4()
-    logger.error(f'{error.detail} with status_code={error.status_code}, error_id={error_id} and request={request}')
+    logger.error(
+        f'{error.detail} with status_code={error.status_code}, error_id={error_id} and request={request}')
     return JSONResponse(
-        content=jsonable_encoder(ErrorResponse(status=error.status_code, id=error_id, message=error.detail)),
-        status_code=error.status_code
-    )
+        content=jsonable_encoder(
+            ErrorResponse(
+                status=error.status_code,
+                id=error_id,
+                message=error.detail)),
+        status_code=error.status_code)
 
 
 @app.exception_handler(RequestValidationError)
@@ -68,12 +72,16 @@ async def validation_error_handler(request: Request, error: ValidationError) -> 
     error_id = uuid.uuid4()
     error_message = str(error)
     status_code = status.HTTP_400_BAD_REQUEST
-    logger.error(f'{error_message} with status_code={status_code}, error_id={error_id} and request={request}')
+    logger.error(
+        f'{error_message} with status_code={status_code}, error_id={error_id} and request={request}')
     return JSONResponse(
-        content=jsonable_encoder(ValidationErrorResponse(status=status_code, id=error_id, message=str(error),
-                                                         errors=error.errors())),
-        status_code=status_code
-    )
+        content=jsonable_encoder(
+            ValidationErrorResponse(
+                status=status_code,
+                id=error_id,
+                message=str(error),
+                errors=error.errors())),
+        status_code=status_code)
 
 
 if __name__ == '__main__':
