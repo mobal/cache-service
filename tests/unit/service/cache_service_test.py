@@ -37,13 +37,7 @@ class TestCacheService:
             Item={
                 'key': data['key'],
                 'value': data['value'],
-                'expired_at': pendulum.datetime(
-                    2100,
-                    12,
-                    31,
-                    23,
-                    59,
-                    59).to_iso8601_string()})
+                'expired_at': pendulum.now().add(hours=1).to_iso8601_string()})
 
     @pytest.fixture
     def table(self, config, dynamodb_client):
@@ -67,18 +61,3 @@ class TestCacheService:
         assert 1 == result['Count']
         item = result['Items'][0]
         assert data['key'] == item['key']
-
-    async def test_successfully_put_key_value_with_short_ttl(self, cache_service, data, table):
-        now = pendulum.now()
-        await cache_service.put_key_value(data)
-        result = table.query(
-            KeyConditionExpression=Key('key').eq(
-                data['key']), FilterExpression=Attr('expired_at').gte(
-                pendulum.now().to_iso8601_string()))
-        assert 1 == result['Count']
-        item = result['Items'][0]
-        assert data['key'] == item['key']
-        # Get datetime as int timestamp to deal with milliseconds
-        assert now.add(
-            seconds=data['ttl']).int_timestamp == pendulum.parse(
-            item['expired_at']).int_timestamp
