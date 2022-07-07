@@ -3,7 +3,7 @@ import uuid
 from typing import List
 
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi_camelcase import CamelModel
@@ -29,13 +29,19 @@ app = FastAPI(debug=config.app_stage == 'dev')
 @app.get('/api/cache/{key}', status_code=status.HTTP_200_OK)
 async def get(key: str, request: Request) -> KeyValue:
     logger.info(f'request={request}')
-    return await cache_service.get_key_value_by_key(key)
+    key_value = await cache_service.get_key_value_by_key(key)
+    if not key_value:
+        raise HTTPException(status.HTTP_404_NOT_FOUND,
+                            f'The requested key value pair was not found with key {key}')
+    return key_value
 
 
-@app.post('/api/cache', status_code=status.HTTP_201_CREATED)
+
+@app.post('/api/cache')
 async def put(data: CreateKeyValue, request: Request):
     logger.info(f'request={request}')
     await cache_service.put_key_value(data.dict())
+    return Response(status_code=status.HTTP_201_CREATED)
 
 
 handler = Mangum(app)
