@@ -31,10 +31,10 @@ async def get(key: str, request: Request) -> KeyValue:
     logger.info(f'request={request}')
     key_value = await cache_service.get_key_value_by_key(key)
     if not key_value:
-        raise HTTPException(status.HTTP_404_NOT_FOUND,
-                            f'The requested key value pair was not found with key {key}')
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            f'The requested key value pair was not found with key {key}')
     return key_value
-
 
 
 @app.post('/api/cache')

@@ -50,7 +50,9 @@ async def test_successfully_get_key_value(mocker, key_value_dict, test_client, c
 
 @pytest.mark.asyncio
 async def test_fail_to_get_key_value(mocker, key_value_dict, test_client, cache_service):
-    mocker.patch('app.services.CacheService.get_key_value_by_key', return_value=None)
+    mocker.patch(
+        'app.services.CacheService.get_key_value_by_key',
+        return_value=None)
     response = test_client.get(f'{BASE_URL}/{key_value_dict["key"]}')
     assert status.HTTP_404_NOT_FOUND == response.status_code
     result = response.json()
