@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 import boto3
 import pendulum
@@ -11,7 +11,7 @@ from app.config import Configuration
 
 class KeyValue(CamelModel):
     key: str
-    value: str
+    value: Any
     expired_at: str
 
 
