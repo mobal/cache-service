@@ -14,12 +14,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from app.config import Configuration
+from app.settings import Settings
 from app.schemas import CreateKeyValue
 from app.services import CacheService, KeyValue
 
 logger = logging.getLogger()
-config = Configuration()
+config = Settings()
 
 cache_service = CacheService()
 
