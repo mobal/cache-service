@@ -1,23 +1,21 @@
-import boto3
 import pytest
-from moto import mock_dynamodb
-from starlette.testclient import TestClient
 
-from app.config import Configuration
-from app.main import app
+from app.services import CacheService
+from app.settings import Settings
 
 
 @pytest.fixture
-def config():
-    return Configuration()
+def cache_service() -> CacheService:
+    return CacheService()
+
+
+@pytest.fixture(autouse=True)
+def set_environment_variables(monkeypatch):
+    monkeypatch.setenv('APP_NAME', 'cache-service')
+    monkeypatch.setenv('APP_STAGE', 'test')
+    monkeypatch.setenv('APP_TIMEZONE', 'Europe/Budapest')
 
 
 @pytest.fixture
-def dynamodb_client():
-    with mock_dynamodb():
-        yield boto3.resource('dynamodb')
-
-
-@pytest.fixture
-def test_client() -> TestClient:
-    return TestClient(app, raise_server_exceptions=False)
+def settings():
+    return Settings()

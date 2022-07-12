@@ -6,7 +6,7 @@ import pendulum
 from boto3.dynamodb.conditions import Key, Attr
 from fastapi_camelcase import CamelModel
 
-from app.config import Configuration
+from app.settings import Settings
 
 
 class KeyValue(CamelModel):
@@ -18,7 +18,7 @@ class KeyValue(CamelModel):
 class CacheService:
     def __init__(self):
         self.logger = logging.getLogger()
-        config = Configuration()
+        config = Settings()
         db = boto3.resource('dynamodb')
         self.table = db.Table(f'{config.app_stage}-cache')
 
