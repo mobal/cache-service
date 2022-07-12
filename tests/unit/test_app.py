@@ -57,7 +57,9 @@ class TestApp:
             key_value_dict['key'])
 
     async def test_successfully_post_key_value(self, mocker, cache_service, key_value_body, test_client):
-        mocker.patch('app.services.CacheService.put_key_value', return_value=None)
+        mocker.patch(
+            'app.services.CacheService.put_key_value',
+            return_value=None)
         response = test_client.post(BASE_URL, json=key_value_body)
         assert status.HTTP_201_CREATED == response.status_code
         assert '' == response.text

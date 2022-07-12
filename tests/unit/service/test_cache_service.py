@@ -28,7 +28,12 @@ class TestCacheService:
         return dynamodb_resource.Table(f'{settings.app_stage}-cache')
 
     @pytest.fixture(autouse=True)
-    def setup_table(self, settings, data, dynamodb_resource, dynamodb_table) -> None:
+    def setup_table(
+            self,
+            settings,
+            data,
+            dynamodb_resource,
+            dynamodb_table) -> None:
         table_name = f'{settings.app_stage}-cache'
         dynamodb_resource.create_table(TableName=table_name,
                                        KeySchema=[{'AttributeName': 'key',
