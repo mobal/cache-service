@@ -77,5 +77,5 @@ class TestCacheService:
         item = result['Items'][0]
         assert data['key'] == item['key']
         assert data['value'] == item['value']
-        assert None == item['expired_at']
-        assert None == item['ttl']
+        assert None is item['expired_at']
+        assert None is item['ttl']
