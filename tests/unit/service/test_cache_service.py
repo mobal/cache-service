@@ -66,3 +66,16 @@ class TestCacheService:
         assert 1 == result['Count']
         item = result['Items'][0]
         assert data['key'] == item['key']
+
+    async def test_successfully_put_key_value_without_ttl(self, cache_service, data, dynamodb_table):
+        del data['ttl']
+        await cache_service.put_key_value(data)
+        result = dynamodb_table.query(
+            KeyConditionExpression=Key('key').eq(
+                data['key']), FilterExpression=Attr('expired_at').eq(None))
+        assert 1 == result['Count']
+        item = result['Items'][0]
+        assert data['key'] == item['key']
+        assert data['value'] == item['value']
+        assert None is item['expired_at']
+        assert None is item['ttl']
