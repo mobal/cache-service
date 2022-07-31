@@ -38,9 +38,9 @@ class TestApp:
         return {
             'key': key_value_body['jti'],
             'value': key_value_body,
-            'created_at': pendulum.from_timestamp(key_value_body['iat']).to_iso8601_string(),
-            'ttl': key_value_body['exp']
-        }
+            'created_at': pendulum.from_timestamp(
+                key_value_body['iat']).to_iso8601_string(),
+            'ttl': key_value_body['exp']}
 
     @pytest.fixture
     def test_client(self) -> TestClient:
@@ -56,7 +56,8 @@ class TestApp:
         assert key_value_dict['key'] == result['key']
         assert key_value_dict['value'] == result['value']
         key_value = KeyValue.parse_obj(result)
-        assert key_value.expired_at == pendulum.from_timestamp(result['ttl']).to_iso8601_string()
+        assert key_value.expired_at == pendulum.from_timestamp(
+            result['ttl']).to_iso8601_string()
         cache_service.get_key_value_by_key.assert_called_once_with(
             key_value_dict['key'])
 
