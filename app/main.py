@@ -60,7 +60,7 @@ class ValidationErrorResponse(ErrorResponse):
 async def http_exception_handler(request: Request, error: HTTPException) -> JSONResponse:
     error_id = uuid.uuid4()
     logger.error(
-        f'{error.detail} with status_code={error.status_code}, error_id={error_id} and request={request}')
+        f'{error.detail} with status_code={error.status_code}, error_id={error_id}')
     return JSONResponse(
         content=jsonable_encoder(
             ErrorResponse(
