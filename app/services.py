@@ -13,7 +13,7 @@ class KeyValue(CamelModel):
     key: str
     value: Any
     created_at: str
-    ttl: int
+    ttl: Optional[int]
 
     @property
     def expired_at(self) -> str:
@@ -44,7 +44,6 @@ class CacheService:
                 'key': data['key'],
                 'value': data['value'],
                 'created_at': pendulum.now().to_iso8601_string(),
-                'expired_at': expired_at.to_iso8601_string() if expired_at else None,
                 'ttl': expired_at.int_timestamp if expired_at else None})
         self.logger.info(
             f'Value for key successfully stored until expired_at={expired_at}, data={data}')

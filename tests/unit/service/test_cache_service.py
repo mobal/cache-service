@@ -3,8 +3,10 @@ import uuid
 import boto3
 import pendulum
 import pytest
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 from moto import mock_dynamodb
+
+from app.services import KeyValue
 
 
 @pytest.mark.asyncio
@@ -62,28 +64,26 @@ class TestCacheService:
         await cache_service.put_key_value(data)
         result = dynamodb_table.query(
             KeyConditionExpression=Key('key').eq(
-                data['key']), FilterExpression=Attr('expired_at').gte(
-                pendulum.from_timestamp(data.get('ttl')).to_iso8601_string()))
+                data['key']))
         assert 1 == result['Count']
         item = result['Items'][0]
         assert data['key'] == item['key']
         assert data['value'] == item['value']
         assert data['ttl'] == item['ttl']
         assert item['created_at'] is not None
-        assert pendulum.parse(
-            item['expired_at']) == pendulum.from_timestamp(
-            data['ttl'])
+        key_value = KeyValue.parse_obj(item)
+        assert pendulum.from_timestamp(
+            data['ttl']).to_iso8601_string() == key_value.expired_at
 
     async def test_successfully_put_key_value_without_ttl(self, cache_service, data, dynamodb_table):
         del data['ttl']
         await cache_service.put_key_value(data)
         result = dynamodb_table.query(
             KeyConditionExpression=Key('key').eq(
-                data['key']), FilterExpression=Attr('expired_at').eq(None))
+                data['key']))
         assert 1 == result['Count']
         item = result['Items'][0]
         assert data['key'] == item['key']
         assert data['value'] == item['value']
         assert item['created_at'] is not None
-        assert None is item['expired_at']
         assert None is item['ttl']
