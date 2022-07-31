@@ -14,10 +14,27 @@ BASE_URL = '/api/cache'
 class TestApp:
     @pytest.fixture
     def key_value_body(self) -> dict:
+        iat = pendulum.now()
+        exp = iat.add(hours=1)
+        key = str(uuid.uuid4())
         return {
-            'key': str(uuid.uuid4()),
-            'value': 'Some random value',
-            'ttl': 3600}
+            'key': f'jti_{key}',
+            'value': {
+                'exp': exp.int_timestamp,
+                'iat': iat.int_timestamp,
+                'iss': None, 'jti': key,
+                'sub': {
+                    'id': str(uuid.uuid4()),
+                    'display_name': 'root',
+                    'email': "root@netcode.hu",
+                    'roles': ['root'],
+                    'username': 'root',
+                    'created_at': iat.to_iso8601_string(),
+                    'deleted_at': None,
+                    'updated_at': None
+                }
+            },
+            'ttl': exp.int_timestamp}
 
     @pytest.fixture
     def key_value_dict(self, key_value_body) -> dict:
