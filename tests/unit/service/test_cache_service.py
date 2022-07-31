@@ -16,7 +16,7 @@ class TestCacheService:
             'key': str(
                 uuid.uuid4()),
             'value': 'Some random value',
-            'ttl': 3600}
+            'ttl': pendulum.now().int_timestamp}
 
     @pytest.fixture
     def dynamodb_resource(self):
@@ -62,7 +62,7 @@ class TestCacheService:
         result = dynamodb_table.query(
             KeyConditionExpression=Key('key').eq(
                 data['key']), FilterExpression=Attr('expired_at').gte(
-                pendulum.now().to_iso8601_string()))
+                pendulum.from_timestamp(data.get('ttl')).to_iso8601_string()))
         assert 1 == result['Count']
         item = result['Items'][0]
         assert data['key'] == item['key']
