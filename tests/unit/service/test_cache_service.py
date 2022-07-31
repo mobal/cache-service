@@ -46,7 +46,8 @@ class TestCacheService:
             Item={
                 'key': data['key'],
                 'value': data['value'],
-                'expired_at': pendulum.now().add(hours=1).to_iso8601_string()})
+                'created_at': pendulum.now().to_iso8601_string(),
+                'ttl': pendulum.now().add(hours=1).int_timestamp})
 
     async def test_fail_to_get_key_value_with_invalid_uuid(self, cache_service):
         result = await cache_service.get_key_value_by_key(str(uuid.uuid4()))
@@ -66,6 +67,12 @@ class TestCacheService:
         assert 1 == result['Count']
         item = result['Items'][0]
         assert data['key'] == item['key']
+        assert data['value'] == item['value']
+        assert data['ttl'] == item['ttl']
+        assert item['created_at'] is not None
+        assert pendulum.parse(
+            item['expired_at']) == pendulum.from_timestamp(
+            data['ttl'])
 
     async def test_successfully_put_key_value_without_ttl(self, cache_service, data, dynamodb_table):
         del data['ttl']
@@ -77,5 +84,6 @@ class TestCacheService:
         item = result['Items'][0]
         assert data['key'] == item['key']
         assert data['value'] == item['value']
+        assert item['created_at'] is not None
         assert None is item['expired_at']
         assert None is item['ttl']
