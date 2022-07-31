@@ -6,6 +6,7 @@ from starlette import status
 from starlette.testclient import TestClient
 
 from app.main import app
+from app.services import KeyValue
 
 BASE_URL = '/api/cache'
 
@@ -14,18 +15,32 @@ BASE_URL = '/api/cache'
 class TestApp:
     @pytest.fixture
     def key_value_body(self) -> dict:
+        iat = pendulum.now()
+        exp = iat.add(hours=1)
         return {
-            'key': str(uuid.uuid4()),
-            'value': 'Some random value',
-            'ttl': 3600}
+            'exp': exp.int_timestamp,
+            'iat': iat.int_timestamp,
+            'iss': None,
+            'jti': str(uuid.uuid4()),
+            'sub': {
+                'id': str(uuid.uuid4()),
+                'display_name': 'root',
+                'email': "root@netcode.hu",
+                'roles': ['root'],
+                'username': 'root',
+                'created_at': iat.to_iso8601_string(),
+                'deleted_at': None,
+                'updated_at': None
+            }}
 
     @pytest.fixture
     def key_value_dict(self, key_value_body) -> dict:
         return {
-            'key': key_value_body['key'],
-            'value': key_value_body['value'],
-            'expired_at': pendulum.now().add(
-                seconds=key_value_body['ttl']).to_iso8601_string()}
+            'key': key_value_body['jti'],
+            'value': key_value_body,
+            'created_at': pendulum.from_timestamp(
+                key_value_body['iat']).to_iso8601_string(),
+            'ttl': key_value_body['exp']}
 
     @pytest.fixture
     def test_client(self) -> TestClient:
@@ -40,7 +55,9 @@ class TestApp:
         result = response.json()
         assert key_value_dict['key'] == result['key']
         assert key_value_dict['value'] == result['value']
-        assert key_value_dict['expired_at'] == result['expired_at']
+        key_value = KeyValue.parse_obj(result)
+        assert key_value.expired_at == pendulum.from_timestamp(
+            result['ttl']).to_iso8601_string()
         cache_service.get_key_value_by_key.assert_called_once_with(
             key_value_dict['key'])
 
@@ -56,14 +73,15 @@ class TestApp:
         cache_service.get_key_value_by_key.assert_called_once_with(
             key_value_dict['key'])
 
-    async def test_successfully_post_key_value(self, mocker, cache_service, key_value_body, test_client):
+    async def test_successfully_post_key_value(self, mocker, cache_service, key_value_dict, test_client):
         mocker.patch(
             'app.services.CacheService.put_key_value',
             return_value=None)
-        response = test_client.post(BASE_URL, json=key_value_body)
+        del key_value_dict['created_at']
+        response = test_client.post(BASE_URL, json=key_value_dict)
         assert status.HTTP_201_CREATED == response.status_code
         assert '' == response.text
-        cache_service.put_key_value.assert_called_once_with(key_value_body)
+        cache_service.put_key_value.assert_called_once_with(key_value_dict)
 
     async def test_fail_to_post_key_value_due_to_empty_body(self, test_client):
         response = test_client.post(BASE_URL, json='')

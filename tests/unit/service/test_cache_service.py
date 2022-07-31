@@ -3,8 +3,10 @@ import uuid
 import boto3
 import pendulum
 import pytest
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 from moto import mock_dynamodb
+
+from app.services import KeyValue
 
 
 @pytest.mark.asyncio
@@ -16,7 +18,7 @@ class TestCacheService:
             'key': str(
                 uuid.uuid4()),
             'value': 'Some random value',
-            'ttl': 3600}
+            'ttl': pendulum.now().int_timestamp}
 
     @pytest.fixture
     def dynamodb_resource(self):
@@ -46,7 +48,8 @@ class TestCacheService:
             Item={
                 'key': data['key'],
                 'value': data['value'],
-                'expired_at': pendulum.now().add(hours=1).to_iso8601_string()})
+                'created_at': pendulum.now().to_iso8601_string(),
+                'ttl': pendulum.now().add(hours=1).int_timestamp})
 
     async def test_fail_to_get_key_value_with_invalid_uuid(self, cache_service):
         result = await cache_service.get_key_value_by_key(str(uuid.uuid4()))
@@ -61,21 +64,26 @@ class TestCacheService:
         await cache_service.put_key_value(data)
         result = dynamodb_table.query(
             KeyConditionExpression=Key('key').eq(
-                data['key']), FilterExpression=Attr('expired_at').gte(
-                pendulum.now().to_iso8601_string()))
+                data['key']))
         assert 1 == result['Count']
         item = result['Items'][0]
         assert data['key'] == item['key']
+        assert data['value'] == item['value']
+        assert data['ttl'] == item['ttl']
+        assert item['created_at'] is not None
+        key_value = KeyValue.parse_obj(item)
+        assert pendulum.from_timestamp(
+            data['ttl']).to_iso8601_string() == key_value.expired_at
 
     async def test_successfully_put_key_value_without_ttl(self, cache_service, data, dynamodb_table):
         del data['ttl']
         await cache_service.put_key_value(data)
         result = dynamodb_table.query(
             KeyConditionExpression=Key('key').eq(
-                data['key']), FilterExpression=Attr('expired_at').eq(None))
+                data['key']))
         assert 1 == result['Count']
         item = result['Items'][0]
         assert data['key'] == item['key']
         assert data['value'] == item['value']
-        assert None is item['expired_at']
+        assert item['created_at'] is not None
         assert None is item['ttl']
