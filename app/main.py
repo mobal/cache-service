@@ -27,8 +27,7 @@ app = FastAPI(debug=config.app_stage == 'dev')
 
 
 @app.get('/api/cache/{key}', status_code=status.HTTP_200_OK)
-async def get(key: str, request: Request) -> KeyValue:
-    logger.info(f'request={request}')
+async def get(key: str) -> KeyValue:
     key_value = await cache_service.get_key_value_by_key(key)
     if not key_value:
         raise HTTPException(
@@ -38,8 +37,7 @@ async def get(key: str, request: Request) -> KeyValue:
 
 
 @app.post('/api/cache')
-async def put(data: CreateKeyValue, request: Request):
-    logger.info(f'request={request}')
+async def put(data: CreateKeyValue):
     await cache_service.put_key_value(data.dict())
     return Response(status_code=status.HTTP_201_CREATED)
 
@@ -79,7 +77,7 @@ async def validation_error_handler(request: Request, error: ValidationError) -> 
     error_message = str(error)
     status_code = status.HTTP_400_BAD_REQUEST
     logger.error(
-        f'{error_message} with status_code={status_code}, error_id={error_id} and request={request}')
+        f'{error_message} with status_code={status_code}, error_id={error_id}')
     return JSONResponse(
         content=jsonable_encoder(
             ValidationErrorResponse(
