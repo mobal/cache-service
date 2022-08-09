@@ -25,7 +25,6 @@ functions:
       - Ref: PythonRequirementsLambdaLayer
 package:
   patterns:
-  patterns:
     - '!.git/**'
     - '!.gitignore'
     - '!.DS_Store'
