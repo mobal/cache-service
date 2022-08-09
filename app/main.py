@@ -32,7 +32,8 @@ async def get(key: str) -> KeyValue:
     if not key_value:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,
-            f'The requested key value pair was not found with key {key}')
+            f'The requested key value pair was not found with key {key}',
+        )
     return key_value
 
 
@@ -57,35 +58,41 @@ class ValidationErrorResponse(ErrorResponse):
 
 @app.exception_handler(HTTPException)
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, error: HTTPException) -> JSONResponse:
+async def http_exception_handler(
+    request: Request, error: HTTPException
+) -> JSONResponse:
     error_id = uuid.uuid4()
     logger.error(
-        f'{error.detail} with status_code={error.status_code}, error_id={error_id}')
+        f'{error.detail} with status_code={error.status_code}, error_id={error_id}'
+    )
     return JSONResponse(
         content=jsonable_encoder(
-            ErrorResponse(
-                status=error.status_code,
-                id=error_id,
-                message=error.detail)),
-        status_code=error.status_code)
+            ErrorResponse(status=error.status_code, id=error_id, message=error.detail)
+        ),
+        status_code=error.status_code,
+    )
 
 
 @app.exception_handler(RequestValidationError)
 @app.exception_handler(ValidationError)
-async def validation_error_handler(request: Request, error: ValidationError) -> JSONResponse:
+async def validation_error_handler(
+    request: Request, error: ValidationError
+) -> JSONResponse:
     error_id = uuid.uuid4()
     error_message = str(error)
     status_code = status.HTTP_400_BAD_REQUEST
-    logger.error(
-        f'{error_message} with status_code={status_code}, error_id={error_id}')
+    logger.error(f'{error_message} with status_code={status_code}, error_id={error_id}')
     return JSONResponse(
         content=jsonable_encoder(
             ValidationErrorResponse(
                 status=status_code,
                 id=error_id,
                 message=str(error),
-                errors=error.errors())),
-        status_code=status_code)
+                errors=error.errors(),
+            )
+        ),
+        status_code=status_code,
+    )
 
 
 if __name__ == '__main__':

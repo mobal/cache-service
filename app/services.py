@@ -37,13 +37,17 @@ class CacheService:
         return KeyValue.parse_obj(response['Items'][0])
 
     async def put_key_value(self, data: dict):
-        expired_at = pendulum.from_timestamp(
-            data.get('ttl')) if data.get('ttl') else None
+        expired_at = (
+            pendulum.from_timestamp(data.get('ttl')) if data.get('ttl') else None
+        )
         self.table.put_item(
             Item={
                 'key': data['key'],
                 'value': data['value'],
                 'created_at': pendulum.now().to_iso8601_string(),
-                'ttl': expired_at.int_timestamp if expired_at else None})
+                'ttl': expired_at.int_timestamp if expired_at else None,
+            }
+        )
         self.logger.info(
-            f'Value for key successfully stored until expired_at={expired_at}, data={data}')
+            f'Value for key successfully stored until expired_at={expired_at}, data={data}'
+        )
