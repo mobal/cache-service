@@ -21,6 +21,7 @@ pytest-mock = "==3.7.0"
 moto = "==3.1.14"
 pycodestyle = "==2.8.0"
 autopep8 = "==1.6.0"
+black = "==22.6.0"
 
 [requires]
 python_version = "3.9"
