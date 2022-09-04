@@ -6,7 +6,6 @@ from botocore.exceptions import ClientError
 from starlette import status
 from starlette.testclient import TestClient
 
-from app.main import app
 from app.services import KeyValue, CacheService
 
 BASE_URL = '/api/cache'
@@ -48,6 +47,8 @@ class TestApp:
 
     @pytest.fixture
     def test_client(self) -> TestClient:
+        from app.main import app
+
         return TestClient(app, raise_server_exceptions=False)
 
     async def test_successfully_get_key_value(
