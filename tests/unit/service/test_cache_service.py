@@ -1,86 +1,73 @@
-import uuid
-
-import boto3
-import pendulum
 import pytest
-from boto3.dynamodb.conditions import Key
-from moto import mock_dynamodb
+from starlette import status
 
-from app.services import KeyValue
+from app.exceptions import KeyValueNotFoundException
+from app.repositories import CacheRepository
+from app.services import CacheService
 
 
 @pytest.mark.asyncio
 class TestCacheService:
     @pytest.fixture
-    def data(self) -> dict:
-        return {
-            'key': str(uuid.uuid4()),
-            'value': 'Some random value',
-            'ttl': pendulum.now().int_timestamp,
-        }
+    def cache_repository(self) -> CacheRepository:
+        return CacheRepository()
 
-    @pytest.fixture
-    def dynamodb_resource(self):
-        with mock_dynamodb():
-            yield boto3.resource('dynamodb')
-
-    @pytest.fixture
-    def dynamodb_table(self, settings, dynamodb_resource):
-        return dynamodb_resource.Table(f'{settings.app_stage}-cache')
-
-    @pytest.fixture(autouse=True)
-    def setup_table(self, settings, data, dynamodb_resource, dynamodb_table) -> None:
-        table_name = f'{settings.app_stage}-cache'
-        dynamodb_resource.create_table(
-            TableName=table_name,
-            KeySchema=[{'AttributeName': 'key', 'KeyType': 'HASH'}],
-            AttributeDefinitions=[{'AttributeName': 'key', 'AttributeType': 'S'}],
-            ProvisionedThroughput={'ReadCapacityUnits': 1, 'WriteCapacityUnits': 1},
+    async def test_fail_to_get_key_value_with_invalid_uuid(
+        self,
+        mocker,
+        cache_service: CacheService,
+        cache_repository: CacheRepository,
+        data: dict,
+    ):
+        mocker.patch(
+            'app.repositories.CacheRepository.get_key_value_by_key',
+            side_effect=KeyValueNotFoundException('KeyValue was not found'),
         )
-        dynamodb_table.put_item(
-            Item={
-                'key': data['key'],
-                'value': data['value'],
-                'created_at': pendulum.now().to_iso8601_string(),
-                'ttl': pendulum.now().add(hours=1).int_timestamp,
-            }
+        with pytest.raises(KeyValueNotFoundException) as excinfo:
+            await cache_service.get_key_value_by_key(data['key'])
+        assert KeyValueNotFoundException.__name__ == excinfo.typename
+        assert status.HTTP_404_NOT_FOUND == excinfo.value.status_code
+        assert 'KeyValue was not found' == excinfo.value.detail
+        cache_repository.get_key_value_by_key.assert_called_once_with(data['key'])
+
+    async def test_successfully_get_key_value(
+        self,
+        mocker,
+        cache_service: CacheService,
+        cache_repository: CacheRepository,
+        data: dict,
+    ):
+        mocker.patch(
+            'app.repositories.CacheRepository.get_key_value_by_key', return_value=data
         )
-
-    async def test_fail_to_get_key_value_with_invalid_uuid(self, cache_service):
-        result = await cache_service.get_key_value_by_key(str(uuid.uuid4()))
-        assert result is None
-
-    async def test_successfully_get_key_value(self, cache_service, data):
         result = await cache_service.get_key_value_by_key(data['key'])
         assert data['key'] == result.key
         assert data['value'] == result.value
+        assert data['created_at'] == result.created_at
+        cache_repository.get_key_value_by_key.assert_called_once_with(data['key'])
 
-    async def test_successfully_put_key_value(
-        self, cache_service, data, dynamodb_table
+    async def test_successfully_create_key_value(
+        self,
+        mocker,
+        cache_service: CacheService,
+        cache_repository: CacheRepository,
+        data: dict,
     ):
-        await cache_service.put_key_value(data)
-        result = dynamodb_table.query(KeyConditionExpression=Key('key').eq(data['key']))
-        assert 1 == result['Count']
-        item = result['Items'][0]
-        assert data['key'] == item['key']
-        assert data['value'] == item['value']
-        assert data['ttl'] == item['ttl']
-        assert item['created_at'] is not None
-        key_value = KeyValue.parse_obj(item)
-        assert (
-            pendulum.from_timestamp(data['ttl']).to_iso8601_string()
-            == key_value.expired_at
+        mocker.patch(
+            'app.repositories.CacheRepository.create_key_value', return_value=None
         )
+        await cache_service.create_key_value(data)
+        cache_repository.create_key_value.assert_called_once_with(data)
 
-    async def test_successfully_put_key_value_without_ttl(
-        self, cache_service, data, dynamodb_table
+    async def test_successfully_create_key_value_without_ttl(
+        self,
+        mocker,
+        cache_service: CacheService,
+        cache_repository: CacheRepository,
+        data: dict,
     ):
-        del data['ttl']
-        await cache_service.put_key_value(data)
-        result = dynamodb_table.query(KeyConditionExpression=Key('key').eq(data['key']))
-        assert 1 == result['Count']
-        item = result['Items'][0]
-        assert data['key'] == item['key']
-        assert data['value'] == item['value']
-        assert item['created_at'] is not None
-        assert None is item['ttl']
+        mocker.patch(
+            'app.repositories.CacheRepository.create_key_value', return_value=None
+        )
+        await cache_service.create_key_value(data)
+        cache_repository.create_key_value.assert_called_once_with(data)
