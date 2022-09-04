@@ -6,7 +6,8 @@ import pytest
 from boto3.dynamodb.conditions import Key
 from moto import mock_dynamodb
 
-from app.services import KeyValue
+from app.services import KeyValue, CacheService
+from app.settings import Settings
 
 
 @pytest.mark.asyncio
@@ -29,7 +30,9 @@ class TestCacheService:
         return dynamodb_resource.Table(f'{settings.app_stage}-cache')
 
     @pytest.fixture(autouse=True)
-    def setup_table(self, settings, data, dynamodb_resource, dynamodb_table) -> None:
+    def setup_table(
+        self, data: dict, dynamodb_resource, dynamodb_table, settings: Settings
+    ):
         table_name = f'{settings.app_stage}-cache'
         dynamodb_resource.create_table(
             TableName=table_name,
@@ -46,17 +49,21 @@ class TestCacheService:
             }
         )
 
-    async def test_fail_to_get_key_value_with_invalid_uuid(self, cache_service):
+    async def test_fail_to_get_key_value_with_invalid_uuid(
+        self, cache_service: CacheService
+    ):
         result = await cache_service.get_key_value_by_key(str(uuid.uuid4()))
         assert result is None
 
-    async def test_successfully_get_key_value(self, cache_service, data):
+    async def test_successfully_get_key_value(
+        self, cache_service: CacheService, data: dict
+    ):
         result = await cache_service.get_key_value_by_key(data['key'])
         assert data['key'] == result.key
         assert data['value'] == result.value
 
     async def test_successfully_put_key_value(
-        self, cache_service, data, dynamodb_table
+        self, cache_service: CacheService, data: dict, dynamodb_table
     ):
         await cache_service.put_key_value(data)
         result = dynamodb_table.query(KeyConditionExpression=Key('key').eq(data['key']))
@@ -73,7 +80,7 @@ class TestCacheService:
         )
 
     async def test_successfully_put_key_value_without_ttl(
-        self, cache_service, data, dynamodb_table
+        self, cache_service: CacheService, data: dict, dynamodb_table
     ):
         del data['ttl']
         await cache_service.put_key_value(data)

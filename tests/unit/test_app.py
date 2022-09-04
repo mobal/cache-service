@@ -6,7 +6,7 @@ from starlette import status
 from starlette.testclient import TestClient
 
 from app.main import app
-from app.services import KeyValue
+from app.services import KeyValue, CacheService
 
 BASE_URL = '/api/cache'
 
@@ -35,7 +35,7 @@ class TestApp:
         }
 
     @pytest.fixture
-    def key_value_dict(self, key_value_body) -> dict:
+    def key_value_dict(self, key_value_body: dict) -> dict:
         return {
             'key': key_value_body['jti'],
             'value': key_value_body,
@@ -50,7 +50,11 @@ class TestApp:
         return TestClient(app, raise_server_exceptions=False)
 
     async def test_successfully_get_key_value(
-        self, mocker, key_value_dict, test_client, cache_service
+        self,
+        mocker,
+        cache_service: CacheService,
+        key_value_dict: dict,
+        test_client: TestClient,
     ):
         mocker.patch(
             'app.services.CacheService.get_key_value_by_key',
@@ -71,7 +75,11 @@ class TestApp:
         )
 
     async def test_fail_to_get_key_value(
-        self, mocker, key_value_dict, test_client, cache_service
+        self,
+        mocker,
+        cache_service: CacheService,
+        key_value_dict: dict,
+        test_client: TestClient,
     ):
         mocker.patch(
             'app.services.CacheService.get_key_value_by_key', return_value=None
@@ -86,7 +94,11 @@ class TestApp:
         )
 
     async def test_successfully_post_key_value(
-        self, mocker, cache_service, key_value_dict, test_client
+        self,
+        mocker,
+        cache_service: CacheService,
+        key_value_dict: dict,
+        test_client: TestClient,
     ):
         mocker.patch('app.services.CacheService.put_key_value', return_value=None)
         del key_value_dict['created_at']
@@ -95,26 +107,34 @@ class TestApp:
         assert '' == response.text
         cache_service.put_key_value.assert_called_once_with(key_value_dict)
 
-    async def test_fail_to_post_key_value_due_to_empty_body(self, test_client):
+    async def test_fail_to_post_key_value_due_to_empty_body(
+        self, test_client: TestClient
+    ):
         response = test_client.post(BASE_URL, json='')
         assert status.HTTP_400_BAD_REQUEST == response.status_code
         result = response.json()
-        assert len(result) == 4
+        assert 4 == len(result)
 
-    async def test_fail_to_post_key_value_due_to_none_body(self, test_client):
+    async def test_fail_to_post_key_value_due_to_none_body(
+        self, test_client: TestClient
+    ):
         response = test_client.post(BASE_URL, json=None)
         assert status.HTTP_400_BAD_REQUEST == response.status_code
         result = response.json()
-        assert len(result) == 4
+        assert 4 == len(result)
 
-    async def test_fail_to_post_key_value_due_to_invalid_body(self, test_client):
+    async def test_fail_to_post_key_value_due_to_invalid_body(
+        self, test_client: TestClient
+    ):
         invalid_body = {'key': '', 'value': '', 'ttl': 'ttl'}
         response = test_client.post(BASE_URL, json=invalid_body)
         assert status.HTTP_400_BAD_REQUEST == response.status_code
         result = response.json()
-        assert len(result) == 4
+        assert 4 == len(result)
 
-    async def test_fail_to_post_key_value_due_to_invalid_ttl(self, test_client):
+    async def test_fail_to_post_key_value_due_to_invalid_ttl(
+        self, test_client: TestClient
+    ):
         invalid_body = {
             'key': 'jti',
             'value': 'a6e28bf9-942f-46a9-ac86-3c6dc3c8efb3',
@@ -123,4 +143,4 @@ class TestApp:
         response = test_client.post(BASE_URL, json=invalid_body)
         assert status.HTTP_400_BAD_REQUEST == response.status_code
         result = response.json()
-        assert len(result) == 4
+        assert 4 == len(result)
