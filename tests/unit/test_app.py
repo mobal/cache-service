@@ -6,6 +6,7 @@ from botocore.exceptions import ClientError
 from starlette import status
 from starlette.testclient import TestClient
 
+from app.exceptions import KeyValueNotFoundException
 from app.services import KeyValue, CacheService
 
 BASE_URL = '/api/cache'
@@ -76,7 +77,7 @@ class TestApp:
             key_value_dict['key']
         )
 
-    async def test_fail_to_get_key_value(
+    async def test_fail_to_get_key_value_due_to_key_value_not_found_exception(
         self,
         mocker,
         cache_service: CacheService,
@@ -84,12 +85,12 @@ class TestApp:
         test_client: TestClient,
     ):
         mocker.patch(
-            'app.services.CacheService.get_key_value_by_key', return_value=None
+            'app.services.CacheService.get_key_value_by_key',
+            side_effect=KeyValueNotFoundException('KeyValue was not found'),
         )
         response = test_client.get(f'{BASE_URL}/{key_value_dict["key"]}')
         assert status.HTTP_404_NOT_FOUND == response.status_code
         result = response.json()
-        assert status.HTTP_404_NOT_FOUND == result['status']
         assert len(result) == 3
         cache_service.get_key_value_by_key.assert_called_once_with(
             key_value_dict['key']
