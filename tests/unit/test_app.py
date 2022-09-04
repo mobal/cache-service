@@ -2,6 +2,7 @@ import uuid
 import pendulum
 
 import pytest
+from botocore.exceptions import ClientError
 from starlette import status
 from starlette.testclient import TestClient
 
@@ -93,6 +94,21 @@ class TestApp:
             key_value_dict['key']
         )
 
+    async def test_fail_to_get_key_value_due_to_client_error(
+        self,
+        mocker,
+        cache_service: CacheService,
+        key_value_dict: dict,
+        test_client: TestClient,
+    ):
+        mocker.patch(
+            'app.services.CacheService.get_key_value_by_key',
+            side_effect=ClientError(error_response={}, operation_name='op'),
+        )
+        response = test_client.get(f'{BASE_URL}/{key_value_dict["key"]}')
+        assert status.HTTP_500_INTERNAL_SERVER_ERROR == response.status_code
+        assert 3 == len(response.json())
+
     async def test_successfully_post_key_value(
         self,
         mocker,
@@ -100,12 +116,12 @@ class TestApp:
         key_value_dict: dict,
         test_client: TestClient,
     ):
-        mocker.patch('app.services.CacheService.put_key_value', return_value=None)
+        mocker.patch('app.services.CacheService.create_key_value', return_value=None)
         del key_value_dict['created_at']
         response = test_client.post(BASE_URL, json=key_value_dict)
         assert status.HTTP_201_CREATED == response.status_code
         assert '' == response.text
-        cache_service.put_key_value.assert_called_once_with(key_value_dict)
+        cache_service.create_key_value.assert_called_once_with(key_value_dict)
 
     async def test_fail_to_post_key_value_due_to_empty_body(
         self, test_client: TestClient
