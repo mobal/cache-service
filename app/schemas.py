@@ -1,5 +1,4 @@
-from typing import Optional
-from anyio import Any
+from typing import Optional, Any
 from fastapi_camelcase import CamelModel
 from pydantic import conint
 
