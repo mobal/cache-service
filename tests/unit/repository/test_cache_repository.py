@@ -65,11 +65,8 @@ class TestCacheRepository:
     ):
         assert data == await cache_repository.get_key_value_by_key(data['key'])
 
-    async def test_fail_to_get_key_value_by_key_due_to_key_value_not_found_exception(
+    async def test_fail_to_get_key_value_by_key(
         self, cache_repository: CacheRepository
     ):
-        with pytest.raises(KeyValueNotFoundException) as excinfo:
-            await cache_repository.get_key_value_by_key('asd')
-        assert KeyValueNotFoundException.__name__ == excinfo.typename
-        assert status.HTTP_404_NOT_FOUND == excinfo.value.status_code
-        assert 'KeyValue was not found' == excinfo.value.detail
+        item = await cache_repository.get_key_value_by_key('asd')
+        assert item is None
