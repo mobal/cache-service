@@ -21,7 +21,7 @@ class TestCacheService:
     ):
         mocker.patch(
             'app.repositories.CacheRepository.get_key_value_by_key',
-            side_effect=KeyValueNotFoundException('KeyValue was not found'),
+            return_value=None,
         )
         with pytest.raises(KeyValueNotFoundException) as excinfo:
             await cache_service.get_key_value_by_key(data['key'])
