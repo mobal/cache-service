@@ -42,11 +42,6 @@ handler = metrics.log_metrics(handler, capture_cold_start_metric=True)
 @app.get('/api/cache/{key}', status_code=status.HTTP_200_OK)
 async def get_cache(key: str) -> KeyValue:
     key_value = await cache_service.get_key_value_by_key(key)
-    if not key_value:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND,
-            f'The requested key value pair was not found with key {key}',
-        )
     metrics.add_metric(name='GetCache', unit=MetricUnit.Count, value=1)
     return key_value
 

@@ -4,6 +4,7 @@ import pendulum
 from aws_lambda_powertools import Logger, Tracer
 from fastapi_camelcase import CamelModel
 
+from app.exceptions import KeyValueNotFoundException
 from app.repositories import CacheRepository
 
 tracer = Tracer()
@@ -29,6 +30,9 @@ class CacheService:
     async def get_key_value_by_key(self, key: str) -> Optional[KeyValue]:
         self._logger.info(f'Get value for key={key}')
         item = await self._repository.get_key_value_by_key(key)
+        if item is None:
+            self._logger.info(f'The requested value was not found for {key=}')
+            raise KeyValueNotFoundException('KeyValue was not found')
         return KeyValue.parse_obj(item)
 
     @tracer.capture_method

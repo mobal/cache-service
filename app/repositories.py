@@ -1,8 +1,9 @@
+from typing import Optional
+
 import boto3
 from aws_lambda_powertools import Logger
 from boto3.dynamodb.conditions import Key
 
-from app.exceptions import KeyValueNotFoundException
 from app.settings import Settings
 
 
@@ -17,10 +18,9 @@ class CacheRepository:
     async def create_key_value(self, data: dict):
         self._table.put_item(Item=data)
 
-    async def get_key_value_by_key(self, key: str) -> dict:
+    async def get_key_value_by_key(self, key: str) -> Optional[dict]:
         response = self._table.query(KeyConditionExpression=Key('key').eq(key))
         self._logger.debug(response)
         if response['Count'] == 1:
             return response['Items'][0]
-        self._logger.info(f'The requested value was not found for {key=}')
-        raise KeyValueNotFoundException('KeyValue was not found')
+        return None
