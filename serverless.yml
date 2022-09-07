@@ -8,6 +8,7 @@ custom:
     dockerImage: mlupin/docker-lambda:python3.9-build
     dockerizePip: false
     layer: true
+    slim: true
     strip: false
     zip: true
   serverless-offline:
@@ -15,9 +16,14 @@ custom:
 functions:
   app:
     environment:
+      APP_DEBUG: ${env:APP_DEBUG}
       APP_NAME: ${env:APP_NAME}
       APP_STAGE: ${env:APP_STAGE}
       APP_TIMEZONE: ${env:APP_TIMEZONE}
+      LOG_LEVEL: DEBUG
+      POWERTOOLS_LOGGER_LOG_EVENT: true
+      POWERTOOLS_METRICS_NAMESPACE: cache
+      POWERTOOLS_SERVICE_NAME: cache-service
     events:
       - httpApi: '*'
     handler: app.main.handler
@@ -31,20 +37,15 @@ package:
     - '!npm-debug.log'
     - '!.serverless/**'
     - '!.serverless_plugins/**'
-    - '!.github/**'
-    - '!.idea/**'
-    - '!.pytest_cache/**'
-    - '!.vscode/**'
     - '!.venv/**'
-    - '!node_modules/**'
-    - '!htmlcov/**'
-    - '!.coverage'
-    - '!coverage.xml'
+  excludeDevDependencies: true
 provider:
   name: aws
+  region: eu-central-1
   runtime: python3.9
   stage: dev
-  region: eu-central-1
+  tracing:
+    lambda: true
   iam:
     role:
       statements:
