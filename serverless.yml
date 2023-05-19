@@ -14,10 +14,10 @@ custom:
 functions:
   app:
     environment:
-      APP_DEBUG: ${env:APP_DEBUG}
       APP_NAME: ${env:APP_NAME}
       APP_STAGE: ${env:APP_STAGE}
       APP_TIMEZONE: ${env:APP_TIMEZONE}
+      DEBUG: ${env:APP_DEBUG}
       LOG_LEVEL: DEBUG
       POWERTOOLS_LOGGER_LOG_EVENT: true
       POWERTOOLS_METRICS_NAMESPACE: cache
@@ -26,6 +26,7 @@ functions:
       - httpApi: '*'
     handler: app.main.handler
     layers:
+      - arn:aws:lambda:${aws:region}:017000801446:layer:AWSLambdaPowertoolsPythonV2:20
       - Ref: PythonRequirementsLambdaLayer
 package:
   patterns:
