@@ -25,7 +25,7 @@ app = FastAPI(debug=True)
 app.add_middleware(GZipMiddleware)
 app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
 
-logger = Logger()
+logger = Logger(utc=True)
 metrics = Metrics()
 tracer = Tracer()
 cache_service = CacheService()
