@@ -12,10 +12,8 @@ from fastapi_camelcase import CamelModel
 from mangum import Mangum
 from pydantic import ValidationError
 from starlette import status
-from starlette.exceptions import (
-    HTTPException as StarletteHTTPException,
-    ExceptionMiddleware,
-)
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -27,7 +25,7 @@ app = FastAPI(debug=True)
 app.add_middleware(GZipMiddleware)
 app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
 
-logger = Logger()
+logger = Logger(utc=True)
 metrics = Metrics()
 tracer = Tracer()
 cache_service = CacheService()

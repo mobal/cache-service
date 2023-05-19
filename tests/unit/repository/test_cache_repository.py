@@ -51,7 +51,7 @@ class TestCacheRepository:
         data['value'] = 'test'
         await cache_repository.create_key_value(data)
         response = dynamodb_table.query(
-            KeyConditionExpression=Key('id').eq(data['key']),
+            KeyConditionExpression=Key('key').eq(data['key']),
         )
         assert 1 == response['Count']
         item = response['Items'][0]

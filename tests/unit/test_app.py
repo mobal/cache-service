@@ -1,13 +1,13 @@
 import uuid
-import pendulum
 
+import pendulum
 import pytest
 from botocore.exceptions import ClientError
 from starlette import status
 from starlette.testclient import TestClient
 
 from app.exceptions import KeyValueNotFoundException
-from app.services import KeyValue, CacheService
+from app.services import CacheService, KeyValue
 
 BASE_URL = '/api/cache'
 

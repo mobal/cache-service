@@ -5,14 +5,12 @@ plugins:
   - serverless-python-requirements
 custom:
   pythonRequirements:
-    dockerImage: mlupin/docker-lambda:python3.9-build
+    dockerImage: public.ecr.aws/shogo82148/lambda-python:3.10
     dockerizePip: false
     layer: true
     slim: true
     strip: false
     zip: true
-  serverless-offline:
-    httpsProtocol: false
 functions:
   app:
     environment:
@@ -42,7 +40,7 @@ package:
 provider:
   name: aws
   region: eu-central-1
-  runtime: python3.9
+  runtime: python3.10
   stage: dev
   tracing:
     lambda: true

@@ -23,7 +23,7 @@ class KeyValue(CamelModel):
 
 class CacheService:
     def __init__(self):
-        self._logger = Logger()
+        self._logger = Logger(utc=True)
         self._repository = CacheRepository()
 
     @tracer.capture_method
