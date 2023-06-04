@@ -3,6 +3,7 @@ from typing import List
 
 import uvicorn
 from aws_lambda_powertools import Logger, Metrics, Tracer
+from aws_lambda_powertools.logging.logger import set_package_logger
 from aws_lambda_powertools.metrics import MetricUnit
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import FastAPI, HTTPException, Response
@@ -20,20 +21,26 @@ from starlette.responses import JSONResponse
 
 from app.schemas import CreateKeyValue
 from app.services import CacheService, KeyValue
+from app.settings import Settings
 
-app = FastAPI(debug=True)
-app.add_middleware(GZipMiddleware)
-app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
+settings = Settings()
+
+if settings.debug:
+    set_package_logger()
 
 logger = Logger(utc=True)
 metrics = Metrics()
 tracer = Tracer()
 cache_service = CacheService()
 
+app = FastAPI(debug=True)
+app.add_middleware(GZipMiddleware)
+app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
+
 handler = Mangum(app)
 handler.__name__ = 'handler'
 handler = tracer.capture_lambda_handler(handler)
-handler = logger.inject_lambda_context(handler, clear_state=True)
+handler = logger.inject_lambda_context(handler, clear_state=True, log_event=True)
 handler = metrics.log_metrics(handler, capture_cold_start_metric=True)
 
 

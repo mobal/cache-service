@@ -21,9 +21,9 @@ def pytest_configure():
 
 def pytest_sessionstart():
     os.environ['DEBUG'] = 'true'
+    os.environ['STAGE'] = pytest.app_stage
 
     os.environ['APP_NAME'] = pytest.service_name
-    os.environ['APP_STAGE'] = pytest.app_stage
     os.environ['APP_TIMEZONE'] = 'Europe/Budapest'
 
     os.environ['AWS_REGION_NAME'] = pytest.aws_region_name
