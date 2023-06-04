@@ -13,7 +13,7 @@ class CacheRepository:
         settings = Settings()
         session = boto3.Session()
         dynamodb = session.resource('dynamodb')
-        self._table = dynamodb.Table(f'{settings.app_stage}-cache')
+        self._table = dynamodb.Table(f'{settings.stage}-cache')
 
     async def create_key_value(self, data: dict):
         self._table.put_item(Item=data)
