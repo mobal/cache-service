@@ -1,7 +1,8 @@
 from typing import Any, Optional
 
-from fastapi_camelcase import CamelModel
 from pydantic import conint
+
+from app.services import CamelModel
 
 
 class CreateKeyValue(CamelModel):

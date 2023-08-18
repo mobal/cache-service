@@ -2,12 +2,19 @@ from typing import Any, Optional
 
 import pendulum
 from aws_lambda_powertools import Logger, Tracer
-from fastapi_camelcase import CamelModel
+from humps import camelize
+from pydantic import BaseModel
 
 from app.exceptions import KeyValueNotFoundException
 from app.repositories import CacheRepository
 
 tracer = Tracer()
+
+
+class CamelModel(BaseModel):
+    class Config:
+        alias_generator = camelize
+        populate_by_name = True
 
 
 class KeyValue(CamelModel):
@@ -33,7 +40,7 @@ class CacheService:
         if item is None:
             self._logger.info(f'The requested value was not found for {key=}')
             raise KeyValueNotFoundException('KeyValue was not found')
-        return KeyValue.parse_obj(item)
+        return KeyValue(**item)
 
     @tracer.capture_method
     async def create_key_value(self, data: dict):

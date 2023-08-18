@@ -9,7 +9,6 @@ from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-from fastapi_camelcase import CamelModel
 from mangum import Mangum
 from pydantic import ValidationError
 from starlette import status
@@ -20,7 +19,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.schemas import CreateKeyValue
-from app.services import CacheService, KeyValue
+from app.services import CacheService, CamelModel, KeyValue
 from app.settings import Settings
 
 settings = Settings()
@@ -53,7 +52,7 @@ async def get_cache(key: str) -> KeyValue:
 
 @app.post('/api/cache')
 async def create_cache(data: CreateKeyValue):
-    await cache_service.create_key_value(data.dict())
+    await cache_service.create_key_value(data.model_dump())
     metrics.add_metric(name='CreateCache', unit=MetricUnit.Count, value=1)
     return Response(status_code=status.HTTP_201_CREATED)
 

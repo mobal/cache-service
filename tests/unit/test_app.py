@@ -68,7 +68,7 @@ class TestApp:
         result = response.json()
         assert key_value_dict['key'] == result['key']
         assert key_value_dict['value'] == result['value']
-        key_value = KeyValue.parse_obj(result)
+        key_value = KeyValue(**result)
         assert (
             key_value.expired_at
             == pendulum.from_timestamp(result['ttl']).to_iso8601_string()
