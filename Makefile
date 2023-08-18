@@ -14,6 +14,9 @@ install:
 	python3 -m pipenv install --dev
 	npm i --dev
 
+pycodestyle:
+	python3 -m pipenv run python -m pycodestyle --ignore=E501,W503 app/ tests/
+
 sort:
 	python3 -m pipenv run python -m isort --atomic app/ tests/
 
