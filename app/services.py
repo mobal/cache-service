@@ -3,7 +3,7 @@ from typing import Any, Optional
 import pendulum
 from aws_lambda_powertools import Logger, Tracer
 from humps import camelize
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.exceptions import KeyValueNotFoundException
 from app.repositories import CacheRepository
@@ -12,9 +12,7 @@ tracer = Tracer()
 
 
 class CamelModel(BaseModel):
-    class Config:
-        alias_generator = camelize
-        populate_by_name = True
+    model_config = ConfigDict(alias_generator = camelize, populate_by_name = True)
 
 
 class KeyValue(CamelModel):
