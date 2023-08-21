@@ -12,7 +12,7 @@ tracer = Tracer()
 
 
 class CamelModel(BaseModel):
-    model_config = ConfigDict(alias_generator = camelize, populate_by_name = True)
+    model_config = ConfigDict(alias_generator=camelize, populate_by_name=True)
 
 
 class KeyValue(CamelModel):
