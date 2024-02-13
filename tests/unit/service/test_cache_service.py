@@ -20,15 +20,15 @@ class TestCacheService:
         data: dict,
     ):
         mocker.patch(
-            'app.repositories.CacheRepository.get_key_value_by_key',
+            "app.repositories.CacheRepository.get_key_value_by_key",
             return_value=None,
         )
         with pytest.raises(KeyValueNotFoundException) as excinfo:
-            await cache_service.get_key_value_by_key(data['key'])
+            await cache_service.get_key_value_by_key(data["key"])
         assert KeyValueNotFoundException.__name__ == excinfo.typename
         assert status.HTTP_404_NOT_FOUND == excinfo.value.status_code
-        assert 'KeyValue was not found' == excinfo.value.detail
-        cache_repository.get_key_value_by_key.assert_called_once_with(data['key'])
+        assert "KeyValue was not found" == excinfo.value.detail
+        cache_repository.get_key_value_by_key.assert_called_once_with(data["key"])
 
     async def test_successfully_get_key_value(
         self,
@@ -38,13 +38,13 @@ class TestCacheService:
         data: dict,
     ):
         mocker.patch(
-            'app.repositories.CacheRepository.get_key_value_by_key', return_value=data
+            "app.repositories.CacheRepository.get_key_value_by_key", return_value=data
         )
-        result = await cache_service.get_key_value_by_key(data['key'])
-        assert data['key'] == result.key
-        assert data['value'] == result.value
-        assert data['created_at'] == result.created_at
-        cache_repository.get_key_value_by_key.assert_called_once_with(data['key'])
+        result = await cache_service.get_key_value_by_key(data["key"])
+        assert data["key"] == result.key
+        assert data["value"] == result.value
+        assert data["created_at"] == result.created_at
+        cache_repository.get_key_value_by_key.assert_called_once_with(data["key"])
 
     async def test_successfully_create_key_value(
         self,
@@ -54,7 +54,7 @@ class TestCacheService:
         data: dict,
     ):
         mocker.patch(
-            'app.repositories.CacheRepository.create_key_value', return_value=None
+            "app.repositories.CacheRepository.create_key_value", return_value=None
         )
         await cache_service.create_key_value(data)
         cache_repository.create_key_value.assert_called_once_with(data)
@@ -67,7 +67,7 @@ class TestCacheService:
         data: dict,
     ):
         mocker.patch(
-            'app.repositories.CacheRepository.create_key_value', return_value=None
+            "app.repositories.CacheRepository.create_key_value", return_value=None
         )
         await cache_service.create_key_value(data)
         cache_repository.create_key_value.assert_called_once_with(data)
