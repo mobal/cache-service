@@ -36,10 +36,10 @@ jobs:
       env:
         AWS_DEFAULT_REGION: eu-central-1
         app_name: ${{ github.event.repository.name }}
-        app_stage: test
         app_timezone: Europe/Budapest
         jwt_secret: x4mfd4KMaY5Mc6vIcTVJxAouH4CnfPsz
         cache_service_base_url: https://localhost
+        stage: test
 
     - name: Fix source path(s) in coverage.xml
       run: |

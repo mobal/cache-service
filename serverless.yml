@@ -14,13 +14,13 @@ functions:
   app:
     environment:
       APP_NAME: ${env:APP_NAME}
-      APP_STAGE: ${env:STAGE}
       APP_TIMEZONE: ${env:APP_TIMEZONE}
       DEBUG: ${env:DEBUG}
       LOG_LEVEL: DEBUG
       POWERTOOLS_LOGGER_LOG_EVENT: true
       POWERTOOLS_METRICS_NAMESPACE: cache
       POWERTOOLS_SERVICE_NAME: cache-service
+      STAGE: ${env:STAGE}
     events:
       - httpApi: '*'
     handler: app.main.handler
