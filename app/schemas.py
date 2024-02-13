@@ -8,4 +8,4 @@ from app.services import CamelModel
 class CreateKeyValue(CamelModel):
     key: str
     value: Any
-    ttl: Optional[conint(gt=0)]
+    ttl: Optional[conint(gt=0)] = None
