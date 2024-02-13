@@ -2,9 +2,8 @@ import uuid
 from typing import List
 
 import uvicorn
-from aws_lambda_powertools import Logger, Metrics, Tracer
+from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.logger import set_package_logger
-from aws_lambda_powertools.metrics import MetricUnit
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
@@ -28,8 +27,6 @@ if settings.debug:
     set_package_logger()
 
 logger = Logger(utc=True)
-metrics = Metrics()
-tracer = Tracer()
 cache_service = CacheService()
 
 app = FastAPI(debug=True)
@@ -37,23 +34,19 @@ app.add_middleware(GZipMiddleware)
 app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
 
 handler = Mangum(app)
-handler.__name__ = 'handler'
-handler = tracer.capture_lambda_handler(handler)
+handler.__name__ = "handler"
 handler = logger.inject_lambda_context(handler, clear_state=True, log_event=True)
-handler = metrics.log_metrics(handler, capture_cold_start_metric=True)
 
 
-@app.get('/api/cache/{key}', status_code=status.HTTP_200_OK)
+@app.get("/api/cache/{key}", status_code=status.HTTP_200_OK)
 async def get_cache(key: str) -> KeyValue:
     key_value = await cache_service.get_key_value_by_key(key)
-    metrics.add_metric(name='GetCache', unit=MetricUnit.Count, value=1)
     return key_value
 
 
-@app.post('/api/cache')
+@app.post("/api/cache")
 async def create_cache(data: CreateKeyValue):
     await cache_service.create_key_value(data.model_dump())
-    metrics.add_metric(name='CreateCache', unit=MetricUnit.Count, value=1)
     return Response(status_code=status.HTTP_201_CREATED)
 
 
@@ -67,19 +60,18 @@ class ValidationErrorResponse(ErrorResponse):
     errors: List[dict]
 
 
-@app.middleware('http')
+@app.middleware("http")
 async def correlation_id_middleware(request: Request, call_next) -> Response:
-    correlation_id = request.headers.get('X-Correlation-ID')
+    correlation_id = request.headers.get("X-Correlation-ID")
     if not correlation_id:
         correlation_id = (
-            request.scope['aws_context'].aws_request_id
-            if request.scope.get('aws_context')
+            request.scope["aws_context"].aws_request_id
+            if request.scope.get("aws_context")
             else str(uuid.uuid4())
         )
     logger.set_correlation_id(correlation_id)
-    tracer.put_annotation(key='correlation_id', value=correlation_id)
     response = await call_next(request)
-    response.headers['X-Correlation-ID'] = correlation_id
+    response.headers["X-Correlation-ID"] = correlation_id
     return response
 
 
@@ -90,8 +82,7 @@ async def error_handler(request: Request, error) -> JSONResponse:
     error_id = uuid.uuid4()
     error_message = str(error)
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    logger.error(f'{error_message} with {status_code=} and {error_id=}')
-    metrics.add_metric(name='ErrorHandler', unit=MetricUnit.Count, value=1)
+    logger.error(f"{error_message} with {status_code=} and {error_id=}")
     return JSONResponse(
         content=jsonable_encoder(
             ErrorResponse(status=status_code, id=error_id, message=error_message)
@@ -107,9 +98,8 @@ async def http_exception_handler(
 ) -> JSONResponse:
     error_id = uuid.uuid4()
     logger.error(
-        f'{error.detail} with status_code={error.status_code} and error_id={error_id}'
+        f"{error.detail} with status_code={error.status_code} and error_id={error_id}"
     )
-    metrics.add_metric(name='HttpExceptionHandler', unit=MetricUnit.Count, value=1)
     return JSONResponse(
         content=jsonable_encoder(
             ErrorResponse(status=error.status_code, id=error_id, message=error.detail)
@@ -127,9 +117,8 @@ async def validation_error_handler(
     error_message = str(error)
     status_code = status.HTTP_400_BAD_REQUEST
     logger.error(
-        f'{error_message} with status_code={status_code} and error_id={error_id}'
+        f"{error_message} with status_code={status_code} and error_id={error_id}"
     )
-    metrics.add_metric(name='ValidationErrorHandler', unit=MetricUnit.Count, value=1)
     return JSONResponse(
         content=jsonable_encoder(
             ValidationErrorResponse(
@@ -143,5 +132,5 @@ async def validation_error_handler(
     )
 
 
-if __name__ == '__main__':
-    uvicorn.run('app.main:app', host='localhost', port=3000, reload=True)
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", host="localhost", port=3000, reload=True)
