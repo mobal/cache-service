@@ -23,6 +23,7 @@ class TestCacheApi:
             self.BASE_URL,
             json={},
         )
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     async def test_successfully_create_cache(
@@ -32,10 +33,12 @@ class TestCacheApi:
             self.BASE_URL,
             json={"key": str(uuid.uuid4()), "value": json.dumps(data), "ttl": 3600},
         )
+
         assert response.status_code == status.HTTP_201_CREATED
 
     async def test_fail_to_get_cache_due_to_invalid_key(self, test_client: TestClient):
         response = test_client.get(f"{self.BASE_URL}/{uuid.uuid4()}")
+
         assert response.status_code == status.HTTP_404_NOT_FOUND
         json = response.json()
         assert json["status"] == status.HTTP_404_NOT_FOUND
@@ -45,6 +48,7 @@ class TestCacheApi:
         self, data: dict[str, str], test_client: TestClient
     ):
         response = test_client.get(f"{self.BASE_URL}/{data['key']}")
+
         assert response.status_code == status.HTTP_200_OK
         json = response.json()
         assert data["key"] == json["key"]

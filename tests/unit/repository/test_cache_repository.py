@@ -15,7 +15,9 @@ class TestCacheRepository:
     ):
         data["key"] = "test"
         data["value"] = "test"
+
         await cache_repository.create_key_value(data)
+
         response = cache_table.query(
             KeyConditionExpression=Key("key").eq(data["key"]),
         )
@@ -35,4 +37,5 @@ class TestCacheRepository:
         self, cache_repository: CacheRepository
     ):
         item = await cache_repository.get_key_value_by_key("asd")
+
         assert item is None
