@@ -37,7 +37,7 @@ class CacheService:
             raise KeyValueNotFoundException("KeyValue was not found")
         return KeyValue(**item)
 
-    async def create_key_value(self, data: dict):
+    async def create_key_value(self, data: dict[str, Any]):
         expired_at = (
             pendulum.from_timestamp(data.get("ttl")) if data.get("ttl") else None
         )
