@@ -68,9 +68,11 @@ class TestApp:
         response = test_client.get(f'{BASE_URL}/{key_value_dict["key"]}')
 
         assert status.HTTP_200_OK == response.status_code
+
         result = response.json()
         assert key_value_dict["key"] == result["key"]
         assert key_value_dict["value"] == result["value"]
+
         key_value = KeyValue(**result)
         assert (
             key_value.expired_at
@@ -96,6 +98,7 @@ class TestApp:
         response = test_client.get(f'{BASE_URL}/{key_value_dict["key"]}')
 
         assert status.HTTP_404_NOT_FOUND == response.status_code
+
         result = response.json()
         assert len(result) == 3
         cache_service.get_key_value_by_key.assert_called_once_with(
@@ -145,6 +148,7 @@ class TestApp:
         response = test_client.post(BASE_URL, json="")
 
         assert status.HTTP_400_BAD_REQUEST == response.status_code
+
         result = response.json()
         assert 4 == len(result)
 
@@ -154,6 +158,7 @@ class TestApp:
         response = test_client.post(BASE_URL, json=None)
 
         assert status.HTTP_400_BAD_REQUEST == response.status_code
+
         result = response.json()
         assert 4 == len(result)
 
@@ -165,6 +170,7 @@ class TestApp:
         response = test_client.post(BASE_URL, json=invalid_body)
 
         assert status.HTTP_400_BAD_REQUEST == response.status_code
+
         result = response.json()
         assert 4 == len(result)
 
@@ -180,5 +186,6 @@ class TestApp:
         response = test_client.post(BASE_URL, json=invalid_body)
 
         assert status.HTTP_400_BAD_REQUEST == response.status_code
+
         result = response.json()
         assert 4 == len(result)

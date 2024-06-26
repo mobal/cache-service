@@ -6,7 +6,6 @@ import pendulum
 import pytest
 from moto import mock_aws
 
-from app.services import CacheService
 from app.settings import Settings
 
 
@@ -28,18 +27,13 @@ def pytest_sessionstart():
 
     os.environ["LOG_LEVEL"] = "DEBUG"
     os.environ["POWERTOOLS_LOGGER_LOG_EVENT"] = "true"
-    os.environ["POWERTOOLS_METRICS_NAMESPACE"] = "cache"
+    os.environ["POWERTOOLS_DEBUG"] = "false"
     os.environ["POWERTOOLS_SERVICE_NAME"] = pytest.service_name
 
 
 @pytest.fixture
 def settings() -> Settings:
     return Settings()
-
-
-@pytest.fixture
-def cache_service() -> CacheService:
-    return CacheService()
 
 
 @pytest.fixture
