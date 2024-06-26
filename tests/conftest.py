@@ -6,7 +6,6 @@ import pendulum
 import pytest
 from moto import mock_aws
 
-from app.services import CacheService
 from app.settings import Settings
 
 
@@ -35,11 +34,6 @@ def pytest_sessionstart():
 @pytest.fixture
 def settings() -> Settings:
     return Settings()
-
-
-@pytest.fixture
-def cache_service() -> CacheService:
-    return CacheService()
 
 
 @pytest.fixture
