@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import pendulum
 from aws_lambda_powertools import Logger
@@ -7,6 +7,8 @@ from pydantic.alias_generators import to_camel
 
 from app.exceptions import KeyValueNotFoundException
 from app.repositories import CacheRepository
+
+logger = Logger(utc=True)
 
 
 class CamelModel(BaseModel):
@@ -17,7 +19,7 @@ class KeyValue(CamelModel):
     key: str
     value: Any
     created_at: str
-    ttl: Optional[int]
+    ttl: int | None
 
     @property
     def expired_at(self) -> str:
@@ -26,14 +28,13 @@ class KeyValue(CamelModel):
 
 class CacheService:
     def __init__(self):
-        self._logger = Logger(utc=True)
         self._repository = CacheRepository()
 
-    async def get_key_value_by_key(self, key: str) -> Optional[KeyValue]:
-        self._logger.info(f"Get value for key={key}")
+    async def get_key_value_by_key(self, key: str) -> KeyValue | None:
+        logger.info(f"Get value for key={key}")
         item = await self._repository.get_key_value_by_key(key)
         if item is None:
-            self._logger.info(f"The requested value was not found for {key=}")
+            logger.info(f"The requested value was not found for {key=}")
             raise KeyValueNotFoundException("KeyValue was not found")
         return KeyValue(**item)
 
@@ -44,6 +45,4 @@ class CacheService:
         data["created_at"] = pendulum.now().to_iso8601_string()
         data["ttl"] = expired_at.int_timestamp if expired_at else None
         await self._repository.create_key_value(data)
-        self._logger.info(
-            f"Value for key successfully stored until {expired_at=}, {data=}"
-        )
+        logger.info(f"Value for key successfully stored until {expired_at=}, {data=}")

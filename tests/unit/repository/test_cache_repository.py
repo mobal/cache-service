@@ -21,7 +21,9 @@ class TestCacheRepository:
         response = cache_table.query(
             KeyConditionExpression=Key("key").eq(data["key"]),
         )
+
         assert 1 == response["Count"]
+
         item = response["Items"][0]
         assert "test" == item["key"]
         assert "test" == item["value"]

@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 
 import uvicorn
 from aws_lambda_powertools import Logger
@@ -57,7 +56,7 @@ class ErrorResponse(CamelModel):
 
 
 class ValidationErrorResponse(ErrorResponse):
-    errors: List[dict]
+    errors: list[dict]
 
 
 @app.middleware("http")
