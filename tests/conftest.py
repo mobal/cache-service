@@ -14,23 +14,6 @@ def pytest_configure():
     pytest.table_name = "test-cache"
 
 
-def pytest_sessionstart():
-    os.environ["DEBUG"] = "true"
-    os.environ["STAGE"] = "test"
-
-    os.environ["APP_NAME"] = pytest.service_name
-    os.environ["APP_TIMEZONE"] = "Europe/Budapest"
-
-    os.environ["AWS_REGION_NAME"] = "eu-central-1"
-    os.environ["AWS_ACCESS_KEY_ID"] = "aws_access_key_id"
-    os.environ["AWS_SECRET_ACCESS_KEY"] = "aws_secret_access_key"
-
-    os.environ["LOG_LEVEL"] = "DEBUG"
-    os.environ["POWERTOOLS_LOGGER_LOG_EVENT"] = "true"
-    os.environ["POWERTOOLS_DEBUG"] = "false"
-    os.environ["POWERTOOLS_SERVICE_NAME"] = pytest.service_name
-
-
 @pytest.fixture
 def settings() -> Settings:
     return Settings()
