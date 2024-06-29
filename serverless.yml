@@ -9,6 +9,7 @@ custom:
     dockerizePip: 'non-linux'
     dockerRunCmdExtraArgs: ['--platform', 'linux/amd64']
     layer: true
+    slim: false
 functions:
   app:
     environment:
@@ -71,4 +72,7 @@ resources:
           - AttributeName: key
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
 useDotenv: true
