@@ -1,4 +1,5 @@
 import uuid
+from typing import Any
 
 import boto3
 import pendulum
@@ -19,12 +20,36 @@ def settings() -> Settings:
 
 
 @pytest.fixture
-def data() -> dict:
+def data() -> dict[str, Any]:
     return {
         "key": str(uuid.uuid4()),
         "value": "Some random value",
         "created_at": pendulum.now().to_iso8601_string(),
         "ttl": pendulum.now().int_timestamp,
+    }
+
+
+@pytest.fixture
+def token_data() -> dict[str, Any]:
+    now = pendulum.now()
+    exp = pendulum.now().add(hours=1)
+    jti = str(uuid.uuid4())
+    return {
+        "key": f"jti_{jti}",
+        "value": {
+            "iss": None,
+            "sub": {
+                "display_name": "root",
+                "email": "info@netcode.hu",
+                "roles": ["post:create", "post:delete", "post:edit"],
+                "username": "root",
+            },
+            "exp": exp.int_timestamp,
+            "iat": now.int_timestamp,
+            "jti": jti,
+        },
+        "created_at": now.to_iso8601_string(),
+        "ttl": exp.int_timestamp,
     }
 
 
@@ -40,7 +65,9 @@ def dynamodb_resource(settings: Settings):
 
 
 @pytest.fixture
-def initialize_cache_table(data: dict, dynamodb_resource, cache_table):
+def initialize_cache_table(
+    cache_table, data: dict[str, Any], dynamodb_resource, token_data: dict[str, Any]
+):
     dynamodb_resource.create_table(
         TableName=pytest.table_name,
         KeySchema=[{"AttributeName": "key", "KeyType": "HASH"}],
@@ -53,6 +80,14 @@ def initialize_cache_table(data: dict, dynamodb_resource, cache_table):
             "value": data["value"],
             "created_at": data["created_at"],
             "ttl": data["ttl"],
+        }
+    )
+    cache_table.put_item(
+        Item={
+            "key": token_data["key"],
+            "value": token_data["value"],
+            "created_at": token_data["created_at"],
+            "ttl": token_data["ttl"],
         }
     )
 

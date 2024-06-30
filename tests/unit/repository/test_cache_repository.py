@@ -1,5 +1,6 @@
+from typing import Any
+
 import pytest
-from boto3.dynamodb.conditions import Key
 
 from app.repositories import CacheRepository
 
@@ -11,27 +12,27 @@ class TestCacheRepository:
         return CacheRepository()
 
     async def test_successfully_create_key_value(
-        self, cache_repository: CacheRepository, data: dict, cache_table
+        self, cache_repository: CacheRepository, cache_table, data: dict[str, Any]
     ):
         data["key"] = "test"
         data["value"] = "test"
 
         await cache_repository.create_key_value(data)
 
-        response = cache_table.query(
-            KeyConditionExpression=Key("key").eq(data["key"]),
+        response = cache_table.get_item(
+            Key={"key": data["key"]},
         )
 
-        assert 1 == response["Count"]
+        assert response.get("Item", None)
 
-        item = response["Items"][0]
+        item = response["Item"]
         assert "test" == item["key"]
         assert "test" == item["value"]
         assert data["created_at"] == item["created_at"]
         assert data["ttl"] == item["ttl"]
 
     async def test_successfully_get_key_value_by_key(
-        self, cache_repository: CacheRepository, data: dict
+        self, cache_repository: CacheRepository, data: dict[str, Any]
     ):
         assert data == await cache_repository.get_key_value_by_key(data["key"])
 
