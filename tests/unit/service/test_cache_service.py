@@ -1,4 +1,5 @@
 import pytest
+from pytest_mock import MockerFixture
 from starlette import status
 
 from app.exceptions import KeyValueNotFoundException
@@ -14,7 +15,7 @@ class TestCacheService:
 
     async def test_fail_to_get_key_value_with_invalid_uuid(
         self,
-        mocker,
+        mocker: MockerFixture,
         cache_service: CacheService,
         cache_repository: CacheRepository,
         data: dict,
@@ -31,7 +32,7 @@ class TestCacheService:
 
     async def test_successfully_get_key_value(
         self,
-        mocker,
+        mocker: MockerFixture,
         cache_service: CacheService,
         cache_repository: CacheRepository,
         data: dict,
@@ -47,7 +48,7 @@ class TestCacheService:
 
     async def test_successfully_create_key_value(
         self,
-        mocker,
+        mocker: MockerFixture,
         cache_service: CacheService,
         cache_repository: CacheRepository,
         data: dict,
@@ -60,7 +61,7 @@ class TestCacheService:
 
     async def test_successfully_create_key_value_without_ttl(
         self,
-        mocker,
+        mocker: MockerFixture,
         cache_service: CacheService,
         cache_repository: CacheRepository,
         data: dict,

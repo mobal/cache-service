@@ -40,9 +40,9 @@ class TestCacheApi:
         response = test_client.get(f"{self.BASE_URL}/{uuid.uuid4()}")
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        json = response.json()
-        assert json["status"] == status.HTTP_404_NOT_FOUND
-        assert json["message"] == "KeyValue was not found"
+        json_body = response.json()
+        assert json_body["status"] == status.HTTP_404_NOT_FOUND
+        assert json_body["message"] == "KeyValue was not found"
 
     async def test_successfully_get_cache(
         self, data: dict[str, str], test_client: TestClient
@@ -50,8 +50,8 @@ class TestCacheApi:
         response = test_client.get(f"{self.BASE_URL}/{data['key']}")
 
         assert response.status_code == status.HTTP_200_OK
-        json = response.json()
-        assert data["key"] == json["key"]
-        assert data["value"] == json["value"]
-        assert data["created_at"] == json["createdAt"]
-        assert data["ttl"] == json["ttl"]
+        json_body = response.json()
+        assert data["key"] == json_body["key"]
+        assert data["value"] == json_body["value"]
+        assert data["created_at"] == json_body["createdAt"]
+        assert data["ttl"] == json_body["ttl"]
