@@ -3,6 +3,7 @@ import uuid
 import pendulum
 import pytest
 from botocore.exceptions import ClientError
+from pytest_mock import MockerFixture
 from starlette import status
 from starlette.testclient import TestClient
 
@@ -54,7 +55,7 @@ class TestApp:
 
     async def test_successfully_get_key_value(
         self,
-        mocker,
+        mocker: MockerFixture,
         cache_service: CacheService,
         key_value_dict: dict,
         test_client: TestClient,
@@ -84,7 +85,7 @@ class TestApp:
 
     async def test_fail_to_get_key_value_due_to_key_value_not_found_exception(
         self,
-        mocker,
+        mocker: MockerFixture,
         cache_service: CacheService,
         key_value_dict: dict,
         test_client: TestClient,
@@ -107,7 +108,7 @@ class TestApp:
 
     async def test_fail_to_get_key_value_due_to_client_error(
         self,
-        mocker,
+        mocker: MockerFixture,
         cache_service: CacheService,
         key_value_dict: dict,
         test_client: TestClient,
@@ -128,7 +129,7 @@ class TestApp:
 
     async def test_successfully_post_key_value(
         self,
-        mocker,
+        mocker: MockerFixture,
         cache_service: CacheService,
         key_value_dict: dict,
         test_client: TestClient,

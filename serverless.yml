@@ -55,8 +55,8 @@ provider:
       statements:
         - Effect: Allow
           Action:
+            - dynamodb:GetItem
             - dynamodb:PutItem
-            - dynamodb:Query
           Resource:
             - !GetAtt cacheTable.Arn
 resources:

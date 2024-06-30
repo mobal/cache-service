@@ -2,7 +2,7 @@ from typing import Any
 
 import pendulum
 from aws_lambda_powertools import Logger
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
 from pydantic.alias_generators import to_camel
 
 from app.exceptions import KeyValueNotFoundException
@@ -21,7 +21,7 @@ class KeyValue(CamelModel):
     created_at: str
     ttl: int | None
 
-    @property
+    @computed_field
     def expired_at(self) -> str:
         return pendulum.from_timestamp(self.ttl).to_iso8601_string()
 
@@ -45,4 +45,6 @@ class CacheService:
         data["created_at"] = pendulum.now().to_iso8601_string()
         data["ttl"] = expired_at.int_timestamp if expired_at else None
         await self._repository.create_key_value(data)
-        logger.info(f"Value for key successfully stored until {expired_at=}, {data=}")
+        logger.info(
+            f"Value for key successfully stored until expired_at={expired_at.to_iso8601_string() if expired_at else None}, {data=}"
+        )
