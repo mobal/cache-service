@@ -21,7 +21,7 @@ variable "stage" {
 }
 
 variable "app_name" {
-  default = "auth-service"
+  default = "cache-service"
   type    = string
 }
 
@@ -41,6 +41,6 @@ variable "log_level" {
 }
 
 variable "power_tools_service_name" {
-  default = "auth-service"
+  default = "cache-service"
   type    = string
 }
