@@ -22,29 +22,33 @@ class KeyValue(CamelModel):
     ttl: int | None
 
     @computed_field
-    def expired_at(self) -> str:
-        return pendulum.from_timestamp(self.ttl).to_iso8601_string()
+    def expired_at(self) -> str | None:
+        return (
+            pendulum.from_timestamp(self.ttl).to_iso8601_string() if self.ttl else None
+        )
 
 
 class CacheService:
     def __init__(self):
-        self._repository = CacheRepository()
+        self.__repository = CacheRepository()
 
     async def get_key_value_by_key(self, key: str) -> KeyValue | None:
         logger.info(f"Get value for key={key}")
-        item = await self._repository.get_key_value_by_key(key)
+        item = await self.__repository.get_key_value_by_key(key)
         if item is None:
             logger.info(f"The requested value was not found for {key=}")
             raise KeyValueNotFoundException("KeyValue was not found")
         return KeyValue(**item)
 
-    async def create_key_value(self, data: dict[str, Any]):
+    async def create_key_value(self, create_dict: dict[str, Any]):
         expired_at = (
-            pendulum.from_timestamp(data.get("ttl")) if data.get("ttl") else None
+            pendulum.from_timestamp(create_dict["ttl"])
+            if create_dict.get("ttl")
+            else None
         )
-        data["created_at"] = pendulum.now().to_iso8601_string()
-        data["ttl"] = expired_at.int_timestamp if expired_at else None
-        await self._repository.create_key_value(data)
+        create_dict["created_at"] = pendulum.now().to_iso8601_string()
+        create_dict["ttl"] = expired_at.int_timestamp if expired_at else None
+        await self.__repository.create_key_value(create_dict)
         logger.info(
-            f"Value for key successfully stored until expired_at={expired_at.to_iso8601_string() if expired_at else None}, {data=}"
+            f"Value for key successfully stored until expired_at={expired_at.to_iso8601_string() if expired_at else None}, {create_dict=}"
         )

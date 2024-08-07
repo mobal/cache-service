@@ -3,7 +3,7 @@ import uuid
 from typing import Any
 
 import pytest
-from starlette import status
+from fastapi import status
 from starlette.testclient import TestClient
 
 
@@ -25,7 +25,7 @@ class TestCacheApi:
             json={},
         )
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
     async def test_successfully_create_cache(
         self, data: dict[str, str], test_client: TestClient
