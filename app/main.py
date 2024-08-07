@@ -11,16 +11,14 @@ from mangum import Mangum
 from pydantic import ValidationError
 from starlette import status
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.middleware.exceptions import ExceptionMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app import settings
+from app.middlewares import APIKeyMiddleware
 from app.schemas import CreateKeyValue
 from app.services import CacheService, CamelModel, KeyValue
-from app.settings import Settings
-
-settings = Settings()
 
 if settings.debug:
     set_package_logger()
@@ -28,12 +26,11 @@ if settings.debug:
 logger = Logger(utc=True)
 cache_service = CacheService()
 
-app = FastAPI(debug=True)
+app = FastAPI(debug=settings.debug, title="CacheApplication", version="1.0.0")
+app.add_middleware(APIKeyMiddleware, api_key=settings.x_api_key)
 app.add_middleware(GZipMiddleware)
-app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
 
 handler = Mangum(app)
-handler.__name__ = "handler"
 handler = logger.inject_lambda_context(handler, clear_state=True, log_event=True)
 
 
