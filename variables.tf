@@ -32,3 +32,7 @@ variable "power_tools_service_name" {
   default = "cache-service"
   type    = string
 }
+
+variable "x_api_key" {
+  type = string
+}
