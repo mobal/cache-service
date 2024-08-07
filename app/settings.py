@@ -8,3 +8,4 @@ class Settings(BaseSettings):
     aws_secret_access_key: str
     debug: bool
     stage: str
+    x_api_key: str

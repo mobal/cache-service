@@ -8,17 +8,17 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from mangum import Mangum
+from pydantic import ValidationError
 from starlette import status
-from starlette.middleware.exceptions import ExceptionMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app import settings
+from app.middlewares import APIKeyMiddleware
 from app.schemas import CreateKeyValue
 from app.services import CacheService, CamelModel, KeyValue
-from app.settings import Settings
-
-settings = Settings()
 
 if settings.debug:
     set_package_logger()
@@ -26,9 +26,9 @@ if settings.debug:
 logger = Logger(utc=True)
 cache_service = CacheService()
 
-app = FastAPI(debug=True)
+app = FastAPI(debug=settings.debug, title="CacheApplication", version="1.0.0")
+app.add_middleware(APIKeyMiddleware, api_key=settings.x_api_key)
 app.add_middleware(GZipMiddleware)
-app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
 
 handler = Mangum(app)
 handler = logger.inject_lambda_context(handler, clear_state=True, log_event=True)
@@ -40,8 +40,8 @@ async def get_cache(key: str) -> KeyValue:
 
 
 @app.post("/api/cache")
-async def create_cache(create_key_value: CreateKeyValue):
-    await cache_service.create_key_value(create_key_value.model_dump())
+async def create_cache(data: CreateKeyValue):
+    await cache_service.create_key_value(data.model_dump())
     return Response(status_code=status.HTTP_201_CREATED)
 
 
@@ -72,13 +72,12 @@ async def correlation_id_middleware(request: Request, call_next) -> Response:
 
 @app.exception_handler(BotoCoreError)
 @app.exception_handler(ClientError)
-async def botocore_error_handler(
-    request: Request, error: BotoCoreError
-) -> JSONResponse:
+@app.exception_handler(Exception)
+async def error_handler(request: Request, error) -> JSONResponse:
     error_id = uuid.uuid4()
-    error_message = str(error) if settings.debug else "Internal Server Error"
+    error_message = str(error)
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    logger.exception(f"Received botocore error {error_id=}")
+    logger.error(f"{error_message} with {status_code=} and {error_id=}")
     return JSONResponse(
         content=jsonable_encoder(
             ErrorResponse(status=status_code, id=error_id, message=error_message)
@@ -88,11 +87,14 @@ async def botocore_error_handler(
 
 
 @app.exception_handler(HTTPException)
+@app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(
     request: Request, error: HTTPException
 ) -> JSONResponse:
     error_id = uuid.uuid4()
-    logger.exception(f"Received http exception {error_id=}")
+    logger.error(
+        f"{error.detail} with status_code={error.status_code} and error_id={error_id}"
+    )
     return JSONResponse(
         content=jsonable_encoder(
             ErrorResponse(status=error.status_code, id=error_id, message=error.detail)
@@ -102,12 +104,16 @@ async def http_exception_handler(
 
 
 @app.exception_handler(RequestValidationError)
-async def request_validation_error_handler(
-    request: Request, error: RequestValidationError
+@app.exception_handler(ValidationError)
+async def validation_error_handler(
+    request: Request, error: ValidationError
 ) -> JSONResponse:
     error_id = uuid.uuid4()
-    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-    logger.exception(f"Received request validation error {error_id=}")
+    error_message = str(error)
+    status_code = status.HTTP_400_BAD_REQUEST
+    logger.error(
+        f"{error_message} with status_code={status_code} and error_id={error_id}"
+    )
     return JSONResponse(
         content=jsonable_encoder(
             ValidationErrorResponse(

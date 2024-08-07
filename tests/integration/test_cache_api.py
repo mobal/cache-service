@@ -4,51 +4,88 @@ from typing import Any
 
 import pytest
 from fastapi import status
-from starlette.testclient import TestClient
+from fastapi.testclient import TestClient
+
+from app import Settings
+from app.main import app
+
+BASE_URL = "/api/cache"
+HEADERS = {
+    "X-Api-Key": "e6bbb529-8885-4c3f-9abd-2e6444fa3058",
+}
+ERROR_MESSAGE_MISSING_X_API_KEY = {"message": "Invalid or missing API key"}
 
 
 @pytest.mark.asyncio
 class TestCacheApi:
-    BASE_URL = "/api/cache"
-
     @pytest.fixture
-    def test_client(self, initialize_cache_table) -> TestClient:
-        from app.main import app
-
-        return TestClient(app, raise_server_exceptions=False)
+    def test_client(self, initialize_cache_table, settings: Settings) -> TestClient:
+        return TestClient(
+            app,
+            raise_server_exceptions=True,
+        )
 
     async def test_fail_to_create_cache_due_to_empty_body(
         self, test_client: TestClient
     ):
         response = test_client.post(
-            self.BASE_URL,
+            BASE_URL,
             json={},
+            headers=HEADERS,
         )
 
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    async def test_fail_to_create_cache_due_to_missing_x_api_key(
+        self, data: dict[str, str], test_client: TestClient
+    ):
+        response = test_client.post(
+            BASE_URL,
+            json={"key": str(uuid.uuid4()), "value": json.dumps(data), "ttl": 3600},
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == ERROR_MESSAGE_MISSING_X_API_KEY
 
     async def test_successfully_create_cache(
         self, data: dict[str, str], test_client: TestClient
     ):
         response = test_client.post(
-            self.BASE_URL,
+            BASE_URL,
             json={"key": str(uuid.uuid4()), "value": json.dumps(data), "ttl": 3600},
+            headers=HEADERS,
         )
 
         assert response.status_code == status.HTTP_201_CREATED
 
     async def test_fail_to_get_cache_due_to_invalid_key(self, test_client: TestClient):
-        response = test_client.get(f"{self.BASE_URL}/{uuid.uuid4()}")
+        response = test_client.get(
+            f"{BASE_URL}/{uuid.uuid4()}",
+            headers=HEADERS,
+        )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         json_body = response.json()
         assert json_body["status"] == status.HTTP_404_NOT_FOUND
         assert json_body["message"] == "KeyValue was not found"
 
+    async def test_fail_to_get_cache_due_to_missing_x_api_key(
+        self, test_client: TestClient
+    ):
+        response = test_client.get(
+            f"{BASE_URL}/{uuid.uuid4()}",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.json() == ERROR_MESSAGE_MISSING_X_API_KEY
+
     async def test_successfully_get_cache(
         self, data: dict[str, str], test_client: TestClient
     ):
-        response = test_client.get(f"{self.BASE_URL}/{data['key']}")
+        response = test_client.get(
+            f"{BASE_URL}/{data['key']}",
+            headers=HEADERS,
+        )
 
         assert response.status_code == status.HTTP_200_OK
         json_body = response.json()
@@ -60,7 +97,10 @@ class TestCacheApi:
     async def test_successfully_get_token_cache(
         self, token_data: dict[str, Any], test_client: TestClient
     ):
-        response = test_client.get(f"{self.BASE_URL}/{token_data['key']}")
+        response = test_client.get(
+            f"{BASE_URL}/{token_data['key']}",
+            headers=HEADERS,
+        )
 
         assert response.status_code == status.HTTP_200_OK
 

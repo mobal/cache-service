@@ -3,10 +3,9 @@ from typing import Any
 import boto3
 from aws_lambda_powertools import Logger
 
-from app.settings import Settings
+from app import settings
 
 logger = Logger(utc=True)
-settings = Settings()
 
 
 class CacheRepository:
