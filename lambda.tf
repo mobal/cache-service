@@ -46,6 +46,7 @@ resource "aws_lambda_function" "fastapi" {
       POWERTOOLS_SERVICE_NAME        = var.power_tools_service_name
       POWERTOOLS_DEBUG               = "false"
       STAGE                          = var.stage
+      X_API_KEY                      = var.x_api_key
     }
   }
 
