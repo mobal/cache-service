@@ -10,13 +10,13 @@ logger = Logger(utc=True)
 
 class CacheRepository:
     def __init__(self):
-        self._table = (
+        self.__table = (
             boto3.Session().resource("dynamodb").Table(f"{settings.stage}-cache")
         )
 
     async def create_key_value(self, data: dict):
-        self._table.put_item(Item=data)
+        self.__table.put_item(Item=data)
 
     async def get_key_value_by_key(self, key: str) -> dict[str, Any] | None:
-        response = self._table.get_item(Key={"key": key})
+        response = self.__table.get_item(Key={"key": key})
         return response.get("Item", None)
