@@ -10,8 +10,24 @@ from app.settings import Settings
 
 
 def pytest_configure():
+    pytest.cache_service_api_key_ssm_param_name = "/dev/service/api-key"
+    pytest.cache_service_api_key_ssm_param_value = (
+        "a2ce72ae-6e34-4c15-8c5a-cb976d119016"
+    )
     pytest.service_name = "cache-service"
     pytest.table_name = "test-cache"
+
+
+@pytest.fixture(autouse=True)
+def setup():
+    with mock_aws():
+        ssm_client = boto3.client("ssm")
+        ssm_client.put_parameter(
+            Name=pytest.cache_service_api_key_ssm_param_name,
+            Value=pytest.cache_service_api_key_ssm_param_value,
+            Type="SecureString",
+        )
+        yield
 
 
 @pytest.fixture

@@ -13,7 +13,11 @@ variable "app_name" {
   type    = string
 }
 
-variable "app_timezone" {
+variable "cache_service_api_key_ssm_param_name" {
+  type = string
+}
+
+variable "default_timezone" {
   default = "UTC"
   type    = string
 }
@@ -31,8 +35,4 @@ variable "log_level" {
 variable "power_tools_service_name" {
   default = "cache-service"
   type    = string
-}
-
-variable "x_api_key" {
-  type = string
 }

@@ -27,7 +27,7 @@ logger = Logger(utc=True)
 cache_service = CacheService()
 
 app = FastAPI(debug=settings.debug, title="CacheApplication", version="1.0.0")
-app.add_middleware(APIKeyMiddleware, api_key=settings.x_api_key)
+app.add_middleware(APIKeyMiddleware, api_key=settings.api_key)
 app.add_middleware(GZipMiddleware)
 
 handler = Mangum(app)
