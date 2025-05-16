@@ -7,11 +7,10 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 from app import Settings
-from app.main import app
 
 BASE_URL = "/api/cache"
 HEADERS = {
-    "X-Api-Key": "e6bbb529-8885-4c3f-9abd-2e6444fa3058",
+    "X-Api-Key": pytest.cache_service_api_key_ssm_param_value,
 }
 ERROR_MESSAGE_MISSING_X_API_KEY = {"message": "Invalid or missing API key"}
 
@@ -20,6 +19,8 @@ ERROR_MESSAGE_MISSING_X_API_KEY = {"message": "Invalid or missing API key"}
 class TestCacheApi:
     @pytest.fixture
     def test_client(self, initialize_cache_table, settings: Settings) -> TestClient:
+        from app.main import app
+
         return TestClient(
             app,
             raise_server_exceptions=True,

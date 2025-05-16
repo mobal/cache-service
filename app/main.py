@@ -27,7 +27,7 @@ logger = Logger(utc=True)
 cache_service = CacheService()
 
 app = FastAPI(debug=settings.debug, title="CacheApplication", version="1.0.0")
-app.add_middleware(APIKeyMiddleware, api_key=settings.x_api_key)
+app.add_middleware(APIKeyMiddleware, api_key=settings.api_key)
 app.add_middleware(GZipMiddleware)
 
 handler = Mangum(app)
@@ -35,7 +35,7 @@ handler = logger.inject_lambda_context(handler, clear_state=True, log_event=True
 
 
 @app.get("/api/cache/{key}", status_code=status.HTTP_200_OK)
-async def get_cache(key: str) -> KeyValue:
+async def get_cache(key: str) -> KeyValue | None:
     return await cache_service.get_key_value_by_key(key)
 
 

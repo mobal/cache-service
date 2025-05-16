@@ -38,15 +38,15 @@ resource "aws_lambda_function" "fastapi" {
 
   environment {
     variables = {
-      APP_NAME                       = var.app_name
-      APP_TIMEZONE                   = var.app_timezone
-      DEBUG                          = var.debug
-      LOG_LEVEL                      = var.log_level
-      POWERTOOLS_LOGGER_LOG_EVENT    = "true"
-      POWERTOOLS_SERVICE_NAME        = var.power_tools_service_name
-      POWERTOOLS_DEBUG               = "false"
-      STAGE                          = var.stage
-      X_API_KEY                      = var.x_api_key
+      APP_NAME                             = var.app_name
+      DEBUG                                = var.debug
+      DEFAULT_TIMEZONE                     = var.default_timezone
+      LOG_LEVEL                            = var.log_level
+      POWERTOOLS_LOGGER_LOG_EVENT          = "true"
+      POWERTOOLS_SERVICE_NAME              = var.power_tools_service_name
+      POWERTOOLS_DEBUG                     = "false"
+      STAGE                                = var.stage
+      CACHE_SERVICE_API_KEY_SSM_PARAM_NAME = var.cache_service_api_key_ssm_param_name
     }
   }
 

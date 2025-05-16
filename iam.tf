@@ -24,6 +24,7 @@ resource "aws_iam_policy" "lambda_policy" {
       {
         Effect   = "Allow"
         Action   = [
+          "dynamodb:GetItem",
           "dynamodb:PutItem",
           "dynamodb:Query",
           "dynamodb:Scan",
@@ -50,6 +51,13 @@ resource "aws_iam_policy" "lambda_policy" {
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect   = "Allow"
+        Action   = [
+          "ssm:GetParameter"
         ]
         Resource = "*"
       }
