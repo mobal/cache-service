@@ -15,7 +15,6 @@ HEADERS = {
 ERROR_MESSAGE_MISSING_X_API_KEY = {"message": "Invalid or missing API key"}
 
 
-@pytest.mark.asyncio
 class TestCacheApi:
     @pytest.fixture
     def test_client(self, initialize_cache_table, settings: Settings) -> TestClient:
@@ -26,9 +25,7 @@ class TestCacheApi:
             raise_server_exceptions=True,
         )
 
-    async def test_fail_to_create_cache_due_to_empty_body(
-        self, test_client: TestClient
-    ):
+    def test_fail_to_create_cache_due_to_empty_body(self, test_client: TestClient):
         response = test_client.post(
             BASE_URL,
             json={},
@@ -37,7 +34,7 @@ class TestCacheApi:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    async def test_fail_to_create_cache_due_to_missing_x_api_key(
+    def test_fail_to_create_cache_due_to_missing_x_api_key(
         self, data: dict[str, str], test_client: TestClient
     ):
         response = test_client.post(
@@ -48,7 +45,7 @@ class TestCacheApi:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == ERROR_MESSAGE_MISSING_X_API_KEY
 
-    async def test_successfully_create_cache(
+    def test_successfully_create_cache(
         self, data: dict[str, str], test_client: TestClient
     ):
         response = test_client.post(
@@ -59,7 +56,7 @@ class TestCacheApi:
 
         assert response.status_code == status.HTTP_201_CREATED
 
-    async def test_fail_to_get_cache_due_to_invalid_key(self, test_client: TestClient):
+    def test_fail_to_get_cache_due_to_invalid_key(self, test_client: TestClient):
         response = test_client.get(
             f"{BASE_URL}/{uuid.uuid4()}",
             headers=HEADERS,
@@ -70,9 +67,7 @@ class TestCacheApi:
         assert json_body["status"] == status.HTTP_404_NOT_FOUND
         assert json_body["message"] == "KeyValue was not found"
 
-    async def test_fail_to_get_cache_due_to_missing_x_api_key(
-        self, test_client: TestClient
-    ):
+    def test_fail_to_get_cache_due_to_missing_x_api_key(self, test_client: TestClient):
         response = test_client.get(
             f"{BASE_URL}/{uuid.uuid4()}",
         )
@@ -80,7 +75,7 @@ class TestCacheApi:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert response.json() == ERROR_MESSAGE_MISSING_X_API_KEY
 
-    async def test_successfully_get_cache(
+    def test_successfully_get_cache(
         self, data: dict[str, str], test_client: TestClient
     ):
         response = test_client.get(
@@ -95,7 +90,7 @@ class TestCacheApi:
         assert data["created_at"] == json_body["createdAt"]
         assert data["ttl"] == json_body["ttl"]
 
-    async def test_successfully_get_token_cache(
+    def test_successfully_get_token_cache(
         self, token_data: dict[str, Any], test_client: TestClient
     ):
         response = test_client.get(
