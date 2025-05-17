@@ -10,7 +10,7 @@ from fastapi.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.requests import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import UJSONResponse
 from mangum import Mangum
 from pydantic import ValidationError
 
@@ -57,12 +57,12 @@ class ValidationErrorResponse(ErrorResponse):
 @app.exception_handler(BotoCoreError)
 @app.exception_handler(ClientError)
 @app.exception_handler(Exception)
-async def error_handler(request: Request, error) -> JSONResponse:
+async def error_handler(request: Request, error) -> UJSONResponse:
     error_id = uuid.uuid4()
     error_message = str(error)
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     logger.error(f"{error_message} with {status_code=} and {error_id=}")
-    return JSONResponse(
+    return UJSONResponse(
         content=jsonable_encoder(
             ErrorResponse(status=status_code, id=error_id, message=error_message)
         ),
@@ -74,12 +74,12 @@ async def error_handler(request: Request, error) -> JSONResponse:
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(
     request: Request, error: HTTPException
-) -> JSONResponse:
+) -> UJSONResponse:
     error_id = uuid.uuid4()
     logger.error(
         f"{error.detail} with status_code={error.status_code} and error_id={error_id}"
     )
-    return JSONResponse(
+    return UJSONResponse(
         content=jsonable_encoder(
             ErrorResponse(status=error.status_code, id=error_id, message=error.detail)
         ),
@@ -91,14 +91,14 @@ async def http_exception_handler(
 @app.exception_handler(ValidationError)
 async def validation_error_handler(
     request: Request, error: ValidationError
-) -> JSONResponse:
+) -> UJSONResponse:
     error_id = uuid.uuid4()
     error_message = str(error)
     status_code = status.HTTP_400_BAD_REQUEST
     logger.error(
         f"{error_message} with status_code={status_code} and error_id={error_id}"
     )
-    return JSONResponse(
+    return UJSONResponse(
         content=jsonable_encoder(
             ValidationErrorResponse(
                 status=status_code,
