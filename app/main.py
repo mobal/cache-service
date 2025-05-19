@@ -34,12 +34,12 @@ handler = logger.inject_lambda_context(handler, clear_state=True, log_event=True
 
 
 @app.get("/api/cache/{key}", status_code=status.HTTP_200_OK)
-async def get_cache(key: str) -> KeyValue | None:
+def get_cache(key: str) -> KeyValue | None:
     return cache_service.get_key_value_by_key(key)
 
 
 @app.post("/api/cache")
-async def create_cache(data: CreateKeyValue):
+def create_cache(data: CreateKeyValue):
     cache_service.create_key_value(data.model_dump())
     return Response(status_code=status.HTTP_201_CREATED)
 
@@ -57,7 +57,7 @@ class ValidationErrorResponse(ErrorResponse):
 @app.exception_handler(BotoCoreError)
 @app.exception_handler(ClientError)
 @app.exception_handler(Exception)
-async def error_handler(request: Request, error) -> UJSONResponse:
+def error_handler(request: Request, error) -> UJSONResponse:
     error_id = uuid.uuid4()
     error_message = str(error)
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -72,9 +72,7 @@ async def error_handler(request: Request, error) -> UJSONResponse:
 
 @app.exception_handler(HTTPException)
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(
-    request: Request, error: HTTPException
-) -> UJSONResponse:
+def http_exception_handler(request: Request, error: HTTPException) -> UJSONResponse:
     error_id = uuid.uuid4()
     logger.error(
         f"{error.detail} with status_code={error.status_code} and error_id={error_id}"
@@ -89,9 +87,7 @@ async def http_exception_handler(
 
 @app.exception_handler(RequestValidationError)
 @app.exception_handler(ValidationError)
-async def validation_error_handler(
-    request: Request, error: ValidationError
-) -> UJSONResponse:
+def validation_error_handler(request: Request, error: ValidationError) -> UJSONResponse:
     error_id = uuid.uuid4()
     error_message = str(error)
     status_code = status.HTTP_400_BAD_REQUEST
