@@ -108,4 +108,4 @@ def validation_error_handler(request: Request, error: ValidationError) -> UJSONR
 
 
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="localhost", port=3000, reload=True)
+    uvicorn.run("app.api_handler:app", host="localhost", port=3000, reload=True)

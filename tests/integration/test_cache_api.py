@@ -18,7 +18,7 @@ ERROR_MESSAGE_MISSING_X_API_KEY = {"message": "Invalid or missing API key"}
 class TestCacheApi:
     @pytest.fixture
     def test_client(self, initialize_cache_table, settings: Settings) -> TestClient:
-        from app.main import app
+        from app.api_handler import app
 
         return TestClient(
             app,
