@@ -71,7 +71,6 @@ def error_handler(request: Request, error) -> UJSONResponse:
 
 
 @app.exception_handler(HTTPException)
-@app.exception_handler(StarletteHTTPException)
 def http_exception_handler(request: Request, error: HTTPException) -> UJSONResponse:
     error_id = uuid.uuid4()
     logger.error(
