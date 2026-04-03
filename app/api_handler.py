@@ -6,7 +6,6 @@ from aws_lambda_powertools.logging.logger import set_package_logger
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.requests import Request
