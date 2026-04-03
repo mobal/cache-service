@@ -5,7 +5,7 @@ on: [push]
 jobs:
   pycodestyle-and-pytest:
     name: Build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     env:
       Coverage_File: coverage.xml
     continue-on-error: false
