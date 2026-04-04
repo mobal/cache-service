@@ -1,31 +1,33 @@
-all: black flake pycodestyle sort test
+.PHONY: all build build-layer build-lambda format install lint bandit test tflint ty
 
-bandit:
-	uv run -m bandit --severity-level high --confidence-level high -r app/ -vvv
+all: bandit format lint test
 
-black:
-	uv run -m black ./
+build: build-layer build-lambda
 
-flake:
-	uv run -m autoflake --in-place --recursive --remove-all-unused-imports --remove-unused-variables app/*.py tests/*.py
+build-layer:
+	./scripts/build_requirements_layer.sh
+
+build-lambda:
+	./scripts/build_api.sh
+
+format:
+	uv run ruff format app/ tests/
 
 install:
 	uv sync
 
-mypy:
-	uv run -m mypy app/ --explicit-package-bases
+lint:
+	uv run ruff check app/ tests/ --fix
 
-pycodestyle:
-	uv run -m pycodestyle --ignore=E501,W503 app/ tests/
-
-sort:
-	uv run -m isort --atomic app/ tests/
+bandit:
+	uv run -m bandit --severity-level high --confidence-level high -r app/ -vvv
 
 test:
-	uv run -m pytest --cov-fail-under=90
+	uv run -m pytest tests --cov=app --cov-report=term-missing --cov-branch
 
-unit-test:
-	uv run -m pytest tests/unit
+tflint:
+	tflint --init
+	tflint --chdir=./infrastructure
 
-integration-test:
-	uv run -m pytest tests/integration
+ty:
+	uv run ty check

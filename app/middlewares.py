@@ -3,9 +3,8 @@ from contextvars import ContextVar
 
 from aws_lambda_powertools import Logger
 from fastapi import Request, Response, status
-from fastapi.responses import UJSONResponse
-from starlette.middleware.base import (BaseHTTPMiddleware,
-                                       RequestResponseEndpoint)
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.types import ASGIApp
 
 X_API_KEY = "X-Api-Key"
@@ -26,7 +25,7 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
         if request.headers.get("X-Api-Key") != self._api_key:
             error_message = "Invalid or missing API key"
             logger.warning(error_message)
-            return UJSONResponse(
+            return JSONResponse(
                 content={"message": error_message},
                 status_code=status.HTTP_403_FORBIDDEN,
             )

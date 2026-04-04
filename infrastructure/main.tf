@@ -2,7 +2,7 @@ terraform {
   required_providers {
     archive = {
       source  = "hashicorp/archive"
-      version = "~> 2.5"
+      version = "2.7.1"
     }
     random = {
       source = "hashicorp/random"
@@ -10,8 +10,13 @@ terraform {
     }
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.59"
+      version = "~> 6.0"
     }
   }
-  required_version = "~> 1.7"
+  
+  required_version = ">= 1.11"
+}
+
+provider "aws" {
+  region = var.aws_region
 }

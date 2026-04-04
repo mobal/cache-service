@@ -3,15 +3,14 @@ import uuid
 import uvicorn
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.logger import set_package_logger
-from botocore.exceptions import BotoCoreError, ClientError
+from botocore.exceptions import BotoCoreError
 from fastapi import FastAPI, HTTPException, Response, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.requests import Request
-from fastapi.responses import UJSONResponse
+from fastapi.responses import JSONResponse
 from mangum import Mangum
-from pydantic import ValidationError
+from pydantic import Field
 
 from app import settings
 from app.middlewares import APIKeyMiddleware
@@ -45,7 +44,7 @@ def create_cache(data: CreateKeyValue):
 
 class ErrorResponse(CamelModel):
     status: int
-    id: uuid.UUID
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
     message: str
 
 
@@ -54,55 +53,85 @@ class ValidationErrorResponse(ErrorResponse):
 
 
 @app.exception_handler(BotoCoreError)
-@app.exception_handler(ClientError)
 @app.exception_handler(Exception)
-def error_handler(request: Request, error) -> UJSONResponse:
-    error_id = uuid.uuid4()
-    error_message = str(error)
+def botocore_error_handler(request: Request, error: Exception) -> JSONResponse:
+    logger.error(
+        "Unhandled exception reached global exception handler",
+        extra={"path": request.url.path, "method": request.method},
+    )
+    logger.exception(
+        "Unhandled exception",
+        extra={
+            "exception_type": type(error).__name__,
+            "exception_message": str(error),
+            "exception_repr": repr(error),
+            "exception_cause": repr(error.__cause__) if error.__cause__ else None,
+            "exception_context": (
+                repr(error.__context__) if error.__context__ else None
+            ),
+            "path": request.url.path,
+            "method": request.method,
+        },
+    )
+    if settings.debug:
+        error_message = (
+            f"{type(error).__name__}: {str(error) or repr(error)}"
+            if str(error)
+            else repr(error)
+        )
+    else:
+        error_message = "Internal Server Error"
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    logger.error(f"{error_message} with {status_code=} and {error_id=}")
-    return UJSONResponse(
-        content=jsonable_encoder(
-            ErrorResponse(status=status_code, id=error_id, message=error_message)
+
+    return JSONResponse(
+        content=ErrorResponse(status=status_code, message=error_message).model_dump(
+            by_alias=True, mode="json"
         ),
         status_code=status_code,
     )
 
 
 @app.exception_handler(HTTPException)
-def http_exception_handler(request: Request, error: HTTPException) -> UJSONResponse:
-    error_id = uuid.uuid4()
-    logger.error(
-        f"{error.detail} with status_code={error.status_code} and error_id={error_id}"
+def http_exception_handler(request: Request, error: HTTPException) -> JSONResponse:
+    logger.warning(
+        "HTTP exception handled",
+        extra={"status_code": error.status_code, "path": request.url.path},
     )
-    return UJSONResponse(
-        content=jsonable_encoder(
-            ErrorResponse(status=error.status_code, id=error_id, message=error.detail)
-        ),
+    logger.exception(error)
+
+    return JSONResponse(
+        content=ErrorResponse(
+            status=error.status_code, message=error.detail
+        ).model_dump(by_alias=True, mode="json"),
         status_code=error.status_code,
     )
 
 
 @app.exception_handler(RequestValidationError)
-@app.exception_handler(ValidationError)
-def validation_error_handler(request: Request, error: ValidationError) -> UJSONResponse:
-    error_id = uuid.uuid4()
-    error_message = str(error)
-    status_code = status.HTTP_400_BAD_REQUEST
-    logger.error(
-        f"{error_message} with status_code={status_code} and error_id={error_id}"
+def request_validation_error_handler(
+    request: Request, error: RequestValidationError
+) -> JSONResponse:
+    logger.warning(
+        "Request validation error handled",
+        extra={"path": request.url.path, "method": request.method},
     )
-    return UJSONResponse(
-        content=jsonable_encoder(
-            ValidationErrorResponse(
-                status=status_code,
-                id=error_id,
-                message=str(error),
-                errors=error.errors(),
-            )
-        ),
+    logger.exception(error)
+    status_code = status.HTTP_400_BAD_REQUEST
+
+    return JSONResponse(
+        content=ValidationErrorResponse(
+            status=status_code,
+            message="Validation Error",
+            errors=error.errors(),
+        ).model_dump(by_alias=True, mode="json"),
         status_code=status_code,
     )
+
+
+@app.get("/health")
+async def health_check():
+    logger.debug("Health check endpoint called")
+    return {"status": "healthy"}
 
 
 if __name__ == "__main__":
