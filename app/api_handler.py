@@ -6,6 +6,7 @@ from aws_lambda_powertools.logging.logger import set_package_logger
 from botocore.exceptions import BotoCoreError
 from fastapi import FastAPI, HTTPException, Response, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
@@ -24,6 +25,12 @@ logger = Logger(utc=True)
 cache_service = CacheService()
 
 app = FastAPI(debug=settings.debug, title="CacheApplication", version="1.0.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(APIKeyMiddleware, api_key=settings.api_key)
 app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(GZipMiddleware)
