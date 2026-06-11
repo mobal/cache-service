@@ -18,5 +18,5 @@ class CacheRepository:
         self._table.put_item(Item=data)
 
     def get_key_value_by_key(self, key: str) -> dict[str, Any] | None:
-        response = self._table.get_item(Key={"key": key})
+        response = self._table.get_item(Key={"key": key}, ConsistentRead=True)
         return response.get("Item", None)
