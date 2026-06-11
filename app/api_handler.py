@@ -97,7 +97,6 @@ def http_exception_handler(request: Request, error: HTTPException) -> JSONRespon
         "HTTP exception handled",
         extra={"status_code": error.status_code, "path": request.url.path},
     )
-    logger.exception(error)
 
     return JSONResponse(
         content=ErrorResponse(
@@ -115,7 +114,6 @@ def request_validation_error_handler(
         "Request validation error handled",
         extra={"path": request.url.path, "method": request.method},
     )
-    logger.exception(error)
     status_code = status.HTTP_400_BAD_REQUEST
 
     return JSONResponse(
