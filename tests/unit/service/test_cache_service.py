@@ -12,7 +12,7 @@ class TestCacheService:
     def cache_repository(self) -> CacheRepository:
         return CacheRepository()
 
-    def test_fail_to_get_key_value_with_invalid_uuid(
+    def test_fail_to_get_non_existent_key(
         self,
         mocker: MockerFixture,
         cache_service: CacheService,
