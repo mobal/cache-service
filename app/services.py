@@ -29,8 +29,8 @@ class KeyValue(CamelModel):
 
 
 class CacheService:
-    def __init__(self):
-        self._repository = CacheRepository()
+    def __init__(self, repository: CacheRepository):
+        self._repository = repository
 
     def get_key_value_by_key(self, key: str) -> KeyValue | None:
         logger.info(f"Get value for key={key}")

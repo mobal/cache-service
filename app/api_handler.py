@@ -4,7 +4,7 @@ import uvicorn
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.logger import set_package_logger
 from botocore.exceptions import BotoCoreError
-from fastapi import FastAPI, HTTPException, Response, status
+from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -14,6 +14,7 @@ from mangum import Mangum
 from pydantic import Field
 
 from app import settings
+from app.dependencies import get_cache_service
 from app.middlewares import APIKeyMiddleware, CorrelationIdMiddleware
 from app.schemas import CreateKeyValue
 from app.services import CacheService, CamelModel, KeyValue
@@ -22,7 +23,6 @@ if settings.debug:
     set_package_logger()
 
 logger = Logger(utc=True)
-cache_service = CacheService()
 
 app = FastAPI(debug=settings.debug, title="CacheApplication", version="1.0.0")
 app.add_middleware(
@@ -40,13 +40,17 @@ handler = logger.inject_lambda_context(handler, clear_state=True, log_event=True
 
 
 @app.get("/api/cache/{key}", status_code=status.HTTP_200_OK)
-def get_cache(key: str) -> KeyValue | None:
-    return cache_service.get_key_value_by_key(key)
+def get_cache(
+    key: str, service: CacheService = Depends(get_cache_service)
+) -> KeyValue | None:
+    return service.get_key_value_by_key(key)
 
 
 @app.post("/api/cache")
-def create_cache(data: CreateKeyValue):
-    cache_service.create_key_value(data.model_dump())
+def create_cache(
+    data: CreateKeyValue, service: CacheService = Depends(get_cache_service)
+):
+    service.create_key_value(data.model_dump())
     return Response(status_code=status.HTTP_201_CREATED)
 
 
