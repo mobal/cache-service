@@ -13,7 +13,7 @@ from mangum import Mangum
 from pydantic import Field
 
 from app import settings
-from app.middlewares import APIKeyMiddleware
+from app.middlewares import APIKeyMiddleware, CorrelationIdMiddleware
 from app.schemas import CreateKeyValue
 from app.services import CacheService, CamelModel, KeyValue
 
@@ -25,6 +25,7 @@ cache_service = CacheService()
 
 app = FastAPI(debug=settings.debug, title="CacheApplication", version="1.0.0")
 app.add_middleware(APIKeyMiddleware, api_key=settings.api_key)
+app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(GZipMiddleware)
 
 handler = Mangum(app)
