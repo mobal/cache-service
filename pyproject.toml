@@ -43,10 +43,7 @@ env = [
     "LOG_LEVEL=INFO",
     "STAGE=test"
 ]
-pythonpath = [
-    ".",
-    "app",
-]
+pythonpath = ["."]
 testpaths = [
     "tests"
 ]
