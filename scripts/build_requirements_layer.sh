@@ -27,14 +27,14 @@ docker run --rm \
     curl -Ls https://astral.sh/uv/install.sh | sh
     export PATH=$UV_INSTALL_DIR:$PATH
 
-    uv export --locked --no-dev --format requirements.txt > requirements.txt
-
     mkdir -p /out/python/lib/python3.14/site-packages
-    pip install -r requirements.txt \
-      -t /out/python/lib/python3.14/site-packages \
-      --platform manylinux2014_x86_64 \
+    uv pip install \
+      --python-platform linux \
       --python-version 3.14 \
-      --no-deps
+      --target /out/python/lib/python3.14/site-packages \
+      --locked \
+      --no-dev \
+      pyproject.toml
 
     cd /out
     zip -r requirements.zip python
