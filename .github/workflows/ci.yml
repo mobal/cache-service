@@ -18,7 +18,7 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest
     env:
-      COVERAGE_FILE: coverage.xml
+      Coverage_File: coverage.xml
     continue-on-error: false
     steps:
 
@@ -51,7 +51,7 @@ jobs:
 
     - name: Running tests with Pytest and generate coverage
       run: |
-        uv run pytest --cov-report=term --cov-report=xml:${{ env.COVERAGE_FILE }} --cov=app/
+        uv run -m pytest --cov-report=term --cov-report=xml:$Coverage_File --cov=app
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v5
@@ -64,10 +64,9 @@ jobs:
       with:
         args: >
           -Dsonar.language=python
-          -Dsonar.python.version=${{ steps.python-version.outputs.version }}
           -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
           -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-          -Dsonar.python.coverage.reportPaths=${{ env.COVERAGE_FILE }}
+          -Dsonar.python.coverage.reportPaths=$Coverage_File
           -Dsonar.sources=app/
           -Dsonar.tests=tests/
       env:
