@@ -74,14 +74,13 @@ def botocore_error_handler(request: Request, error: Exception) -> JSONResponse:
             "method": request.method,
         },
     )
-    if settings.debug:
+    error_message = "Internal Server Error"
+    if settings.debug and settings.stage != "production":
         error_message = (
             f"{type(error).__name__}: {str(error) or repr(error)}"
             if str(error)
             else repr(error)
         )
-    else:
-        error_message = "Internal Server Error"
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
     return JSONResponse(
