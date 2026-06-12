@@ -29,8 +29,8 @@ class KeyValue(CamelModel):
 
 
 class CacheService:
-    def __init__(self):
-        self._repository = CacheRepository()
+    def __init__(self, repository: CacheRepository):
+        self._repository = repository
 
     def get_key_value_by_key(self, key: str) -> KeyValue | None:
         logger.info(f"Get value for key={key}")
@@ -46,7 +46,7 @@ class CacheService:
             if create_dict.get("ttl")
             else None
         )
-        create_dict["created_at"] = pendulum.now().to_iso8601_string()
+        create_dict["created_at"] = pendulum.now("UTC").to_iso8601_string()
         create_dict["ttl"] = expired_at.int_timestamp if expired_at else None
         self._repository.create_key_value(create_dict)
         logger.info(

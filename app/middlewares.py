@@ -4,8 +4,7 @@ from contextvars import ContextVar
 from aws_lambda_powertools import Logger
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
-from starlette.middleware.base import (BaseHTTPMiddleware,
-                                       RequestResponseEndpoint)
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.types import ASGIApp
 
 X_API_KEY = "X-Api-Key"

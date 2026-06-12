@@ -1,4 +1,5 @@
 import os
+from functools import cached_property
 
 from aws_lambda_powertools.utilities import parameters
 from pydantic import computed_field
@@ -14,7 +15,7 @@ class Settings(BaseSettings):
     stage: str
 
     @computed_field
-    @property
+    @cached_property
     def api_key(self) -> str:
         return parameters.get_parameter(
             os.environ.get("CACHE_SERVICE_API_KEY_SSM_PARAM_NAME"), decrypt=True
